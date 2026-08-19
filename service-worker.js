@@ -44,17 +44,27 @@ chrome.commands.onCommand.addListener(async (command) => {
   const hostname = tab?.url ? darksideHostnameFromUrl(tab.url) : "";
   const restricted = darksideIsRestrictedUrl(tab?.url);
 
+  const invert = !restricted && hostname && stored.siteOverrides[hostname]
+    ? !(stored.siteOverrides[hostname].darkMode ?? stored.darkMode)
+    : !stored.darkMode;
+
   if (!restricted && hostname && stored.siteOverrides[hostname]) {
     const override = { ...stored.siteOverrides[hostname] };
-    const current = override.darkMode ?? stored.darkMode;
-    override.darkMode = !current;
+    override.darkMode = invert;
     if (override.enabled === false) override.enabled = true;
     stored.siteOverrides[hostname] = override;
     await chrome.storage.local.set({ siteOverrides: stored.siteOverrides });
-    return;
+  } else {
+    await chrome.storage.local.set({ darkMode: invert, enabled: true });
   }
 
-  await chrome.storage.local.set({ darkMode: !stored.darkMode, enabled: true });
+  if (tab?.id && !restricted) {
+    try {
+      await chrome.tabs.sendMessage(tab.id, { type: "darkside-user-invert", invert });
+    } catch {
+      /* no content script on this tab */
+    }
+  }
 });
 
 ensureDefaults();

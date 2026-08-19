@@ -2,6 +2,7 @@
   const html = document.documentElement;
   let lastSettings = DARKSIDE_DEFAULTS;
   let skippedAlreadyDark = false;
+  let userForcedInvert = null;
 
   function currentHost() {
     try {
@@ -108,6 +109,7 @@
     html.style.removeProperty("--ds-brightness");
     html.style.removeProperty("--ds-contrast");
     html.style.removeProperty("--ds-sepia");
+    stopBgObserver();
   }
 
   function paint(effective) {
@@ -117,7 +119,10 @@
     }
 
     const vars = darksideCssVars(effective);
-    const invert = skippedAlreadyDark && !effective._explicitDark ? 0 : vars.invert;
+    let invert = vars.invert;
+    if (userForcedInvert === true) invert = 1;
+    else if (userForcedInvert === false) invert = 0;
+    else if (skippedAlreadyDark) invert = 0;
 
     html.setAttribute("data-darkside", "");
     html.setAttribute("data-darkside-invert", String(invert));
@@ -132,6 +137,13 @@
     } else {
       html.removeAttribute("data-darkside-fill");
     }
+
+    if (invert) {
+      startBgObserver();
+      if (document.body) queueBgWork(document.body, false);
+    } else {
+      stopBgObserver();
+    }
   }
 
   function apply(stored) {
@@ -144,14 +156,183 @@
   }
 
   function detectAlreadyDark() {
+    if (userForcedInvert !== null) {
+      skippedAlreadyDark = false;
+      paint(darksideEffective(lastSettings, currentHost()));
+      return;
+    }
     const effective = darksideEffective(lastSettings, currentHost());
-    if (!effective.enabled || !effective.darkMode || effective._explicitDark) {
+    if (!effective.enabled || !effective.darkMode) {
       skippedAlreadyDark = false;
       paint(effective);
       return;
     }
     skippedAlreadyDark = originallyDark();
     paint(effective);
+  }
+
+  const BG_ATTR = "data-darkside-bg";
+  const SKIP_BG_TAGS = new Set([
+    "HTML",
+    "HEAD",
+    "BODY",
+    "SCRIPT",
+    "STYLE",
+    "LINK",
+    "META",
+    "TITLE",
+    "NOSCRIPT",
+    "IMG",
+    "VIDEO",
+    "CANVAS",
+    "IFRAME",
+    "EMBED",
+    "OBJECT",
+    "SVG",
+  ]);
+
+  let bgObserver = null;
+  let bgRaf = 0;
+  let bgRescanAll = false;
+  const bgPending = new Set();
+
+  function hasUrlImage(value) {
+    return Boolean(value) && /url\s*\(/i.test(value);
+  }
+
+  function computedBackgroundImage(el, pseudo) {
+    try {
+      return getComputedStyle(el, pseudo).backgroundImage || "";
+    } catch {
+      return "";
+    }
+  }
+
+  // 1. Inline / script: element.style or style="background-image: url(...)"
+  function hasScriptBackgroundImage(el) {
+    const inline = `${el.style?.backgroundImage || ""} ${el.style?.background || ""}`;
+    if (hasUrlImage(inline)) return true;
+    const attr = el.getAttribute("style") || "";
+    return /background(?:-image)?\s*:[^;]*url\s*\(/i.test(attr);
+  }
+
+  // 2. CSS class / stylesheet: computed style (and ::before / ::after)
+  function hasCssBackgroundImage(el) {
+    return (
+      hasUrlImage(computedBackgroundImage(el)) ||
+      hasUrlImage(computedBackgroundImage(el, "::before")) ||
+      hasUrlImage(computedBackgroundImage(el, "::after"))
+    );
+  }
+
+  function elementHasBackgroundImage(el) {
+    if (!(el instanceof Element)) return false;
+    if (SKIP_BG_TAGS.has(el.tagName)) return false;
+    return hasScriptBackgroundImage(el) || hasCssBackgroundImage(el);
+  }
+
+  function shouldUninvertBackground(el) {
+    if (!elementHasBackgroundImage(el)) return false;
+    if (el.parentElement?.closest(`[${BG_ATTR}]`)) return false;
+    const text = (el.textContent || "").replace(/\s+/g, "");
+    if (text.length > 24) return false;
+    try {
+      const rect = el.getBoundingClientRect();
+      if (rect.width > 0 && rect.height > 0 && rect.width < 40 && rect.height < 40) {
+        return false;
+      }
+    } catch {
+      /* ignore */
+    }
+    return true;
+  }
+
+  function setBgMark(el, on) {
+    if (on) {
+      if (el.getAttribute(BG_ATTR) !== "1") el.setAttribute(BG_ATTR, "1");
+    } else if (el.hasAttribute(BG_ATTR)) {
+      el.removeAttribute(BG_ATTR);
+    }
+  }
+
+  function inspectBg(el) {
+    if (!(el instanceof Element)) return;
+    setBgMark(el, shouldUninvertBackground(el));
+  }
+
+  function inspectBgTree(root) {
+    if (!(root instanceof Element)) return;
+    inspectBg(root);
+    const nodes = root.querySelectorAll("*");
+    for (let i = 0; i < nodes.length; i += 1) inspectBg(nodes[i]);
+  }
+
+  function clearBgMarks() {
+    document.querySelectorAll(`[${BG_ATTR}]`).forEach((el) => el.removeAttribute(BG_ATTR));
+  }
+
+  function flushBgWork() {
+    bgRaf = 0;
+    if (bgRescanAll) {
+      bgRescanAll = false;
+      bgPending.clear();
+      if (document.body) inspectBgTree(document.body);
+      return;
+    }
+    bgPending.forEach((el) => {
+      if (el.isConnected) inspectBgTree(el);
+    });
+    bgPending.clear();
+  }
+
+  function queueBgWork(el, rescanAll) {
+    if (rescanAll) bgRescanAll = true;
+    else if (el instanceof Element) bgPending.add(el);
+    if (!bgRaf) bgRaf = requestAnimationFrame(flushBgWork);
+  }
+
+  function startBgObserver() {
+    if (bgObserver || !document.documentElement) return;
+    bgObserver = new MutationObserver((mutations) => {
+      for (const mutation of mutations) {
+        if (mutation.type === "attributes") {
+          queueBgWork(mutation.target, false);
+          continue;
+        }
+        for (const node of mutation.addedNodes) {
+          if (!(node instanceof Element)) continue;
+          const tag = node.tagName;
+          if (tag === "STYLE" || tag === "LINK") {
+            queueBgWork(null, true);
+            if (tag === "LINK") node.addEventListener("load", () => queueBgWork(null, true), { once: true });
+          } else {
+            queueBgWork(node, false);
+          }
+        }
+      }
+    });
+    bgObserver.observe(html, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: ["style", "class"],
+    });
+    if (document.body) inspectBgTree(document.body);
+    else queueBgWork(html, true);
+  }
+
+  function stopBgObserver() {
+    if (bgObserver) {
+      bgObserver.disconnect();
+      bgObserver = null;
+    }
+    if (bgRaf) {
+      cancelAnimationFrame(bgRaf);
+      bgRaf = 0;
+    }
+    bgPending.clear();
+    bgRescanAll = false;
+    clearBgMarks();
   }
 
   function whenReady(callback) {
@@ -183,22 +364,27 @@
   chrome.storage.onChanged.addListener((_changes, area) => {
     if (area !== "local") return;
     chrome.storage.local.get(null, (stored) => {
-      skippedAlreadyDark = markedDark();
       apply(stored);
-      detectAlreadyDark();
+      if (userForcedInvert === null) detectAlreadyDark();
     });
   });
 
   chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     if (!message) return;
+    if (message.type === "darkside-user-invert") {
+      userForcedInvert = Boolean(message.invert);
+      skippedAlreadyDark = false;
+      apply(lastSettings);
+      return;
+    }
     if (message.type === "darkside-apply") {
-      skippedAlreadyDark = markedDark();
       apply(message.settings || lastSettings);
+      if (userForcedInvert === null) detectAlreadyDark();
       return;
     }
     if (message.type === "darkside-status") {
       sendResponse({
-        skippedAlreadyDark,
+        skippedAlreadyDark: skippedAlreadyDark && userForcedInvert !== true,
         invert: html.getAttribute("data-darkside-invert") === "1",
       });
     }

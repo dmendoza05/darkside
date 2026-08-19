@@ -107,8 +107,25 @@ async function refreshSkipHint() {
     }
     const status = await chrome.tabs.sendMessage(tab.id, { type: "darkside-status" }, { frameId: 0 });
     alreadyDarkEl.hidden = !status?.skippedAlreadyDark;
+    if (typeof status?.invert === "boolean") {
+      darkModeEl.checked = status.invert;
+    }
   } catch {
     alreadyDarkEl.hidden = true;
+  }
+}
+
+async function tellTabInvert(invert) {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) return;
+    await chrome.tabs.sendMessage(
+      tab.id,
+      { type: "darkside-user-invert", invert: Boolean(invert) },
+      { frameId: 0 }
+    );
+  } catch {
+    /* page has no content script */
   }
 }
 
@@ -161,6 +178,7 @@ siteEnabledEl.addEventListener("change", async () => {
 
 darkModeEl.addEventListener("change", async () => {
   await persist(nextPayload({ darkMode: darkModeEl.checked }));
+  await tellTabInvert(darkModeEl.checked);
   highlightPreset(currentTune());
 });
 
@@ -178,6 +196,7 @@ document.querySelectorAll(".presets button").forEach((btn) => {
     if (!preset) return;
     paintForm({ ...preset, enabled: siteEnabledEl.checked }, rememberEl.checked);
     await persist(nextPayload(preset));
+    await tellTabInvert(Boolean(preset.darkMode));
   });
 });
 

@@ -19,8 +19,8 @@ Restricted pages (`chrome://`, the Chrome Web Store, extension pages) cannot be 
 - **This site** — turn Darkside off for the current hostname
 - **Presets** — Soft, Night, Sunset, Contrast, Reading
 - **Sliders** — Brightness, Contrast, Warmth, Dim (work even when Dark Mode is off)
-- **Remember for this site** — keep a per-site override instead of changing the global default
-- Sites that already look dark skip invert automatically. Check **Remember for this site** with Dark Mode on to force it.
+- **Remember for this site** — keep slider/preset overrides for this hostname
+- Sites that already look dark leave invert off until you turn **Dark Mode** on
 - **Settings** (gear) — global defaults, auto-night window, and a list of site overrides
 
 Keyboard shortcut: `Alt` + `Shift` + `D` toggles dark mode on the current tab. Change it at `chrome://extensions/shortcuts`.

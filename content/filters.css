@@ -27,3 +27,13 @@ html[data-darkside][data-darkside-invert="1"] img[src$=".svg"],
 html[data-darkside][data-darkside-invert="1"] img[src*=".svg?"] {
   filter: none !important;
 }
+
+/* CSS/script background-image photos (marked by the content script). */
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] :is(img, video, canvas, iframe, embed, object),
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] svg:has(> image) {
+  filter: none !important;
+}
