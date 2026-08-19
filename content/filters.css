@@ -1,0 +1,28 @@
+html[data-darkside] {
+  filter: invert(var(--ds-invert, 0)) hue-rotate(var(--ds-hue, 0deg))
+    brightness(var(--ds-brightness, 1)) contrast(var(--ds-contrast, 1))
+    sepia(var(--ds-sepia, 0)) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] {
+  color-scheme: dark;
+}
+
+html[data-darkside][data-darkside-invert="1"][data-darkside-fill="1"] {
+  background-color: #ffffff !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] img,
+html[data-darkside][data-darkside-invert="1"] video,
+html[data-darkside][data-darkside-invert="1"] picture,
+html[data-darkside][data-darkside-invert="1"] canvas,
+html[data-darkside][data-darkside-invert="1"] iframe,
+html[data-darkside][data-darkside-invert="1"] embed,
+html[data-darkside][data-darkside-invert="1"] object {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] img[src$=".svg"],
+html[data-darkside][data-darkside-invert="1"] img[src*=".svg?"] {
+  filter: none !important;
+}

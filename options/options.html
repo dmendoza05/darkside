@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darkside settings</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <main>
+      <header class="header">
+        <img class="logo" src="../icons/logo.png" alt="" width="40" height="40" />
+        <div>
+          <h1>Darkside</h1>
+          <p>Dark mode and eye care for any website</p>
+        </div>
+      </header>
+
+      <section class="card">
+        <h2>Global defaults</h2>
+        <label class="toggle-row">
+          <span>
+            <strong>Enable Darkside</strong>
+            <small>Master switch for every site</small>
+          </span>
+          <input id="enabled" type="checkbox" />
+          <span class="switch"></span>
+        </label>
+        <label class="toggle-row">
+          <span>
+            <strong>Dark Mode</strong>
+            <small>Default invert for sites without an override</small>
+          </span>
+          <input id="darkMode" type="checkbox" />
+          <span class="switch"></span>
+        </label>
+
+        <div class="sliders">
+          <label>
+            <span>Brightness <b id="brightness-val">100%</b></span>
+            <input id="brightness" type="range" min="50" max="150" value="100" />
+          </label>
+          <label>
+            <span>Contrast <b id="contrast-val">100%</b></span>
+            <input id="contrast" type="range" min="50" max="150" value="100" />
+          </label>
+          <label>
+            <span>Warmth <b id="warmth-val">20</b></span>
+            <input id="warmth" type="range" min="0" max="80" value="20" />
+          </label>
+          <label>
+            <span>Dim <b id="dim-val">0</b></span>
+            <input id="dim" type="range" min="0" max="70" value="0" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Auto night</h2>
+        <label class="toggle-row">
+          <span>
+            <strong>Enable after hours</strong>
+            <small>Turns on dark mode and extra warmth in this window</small>
+          </span>
+          <input id="autoNight" type="checkbox" />
+          <span class="switch"></span>
+        </label>
+        <div class="times">
+          <label>
+            From
+            <input id="autoNightStart" type="time" />
+          </label>
+          <label>
+            To
+            <input id="autoNightEnd" type="time" />
+          </label>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Site overrides</h2>
+        <input id="search" class="search" type="search" placeholder="Search sites" />
+        <ul id="site-list" class="site-list"></ul>
+        <p id="empty" class="empty">No matching site overrides. Use Remember for this site in the popup.</p>
+      </section>
+
+      <section class="card">
+        <h2>Keyboard shortcut</h2>
+        <p class="hint">
+          Toggle dark mode on the current tab with <kbd>Alt</kbd> + <kbd>Shift</kbd> +
+          <kbd>D</kbd>. Change it in Chrome at
+          <span class="mono">chrome://extensions/shortcuts</span>.
+        </p>
+      </section>
+    </main>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

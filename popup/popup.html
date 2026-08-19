@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darkside</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <img class="logo" src="../icons/logo.png" alt="" width="28" height="28" />
+      <h1>Darkside</h1>
+      <button id="open-options" class="icon-btn" title="Settings" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <path
+            d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-1.7-1L15 4h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7.6 7.6 0 0 0 1.7 1L11 22h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <p id="restricted" class="restricted" hidden>
+      Darkside can’t run on this page. Try a regular website.
+    </p>
+
+    <div id="main">
+      <label class="dark-toggle">
+        <span>
+          <strong>Dark Mode</strong>
+          <small>Invert pages while keeping photos intact</small>
+        </span>
+        <input id="darkMode" type="checkbox" />
+        <span class="switch" aria-hidden="true"></span>
+      </label>
+
+      <section class="site-card">
+        <div class="site-copy">
+          <span class="eyebrow">This site</span>
+          <span id="hostname" class="hostname">—</span>
+        </div>
+        <label class="site-toggle">
+          <span id="site-state">On</span>
+          <input id="siteEnabled" type="checkbox" checked />
+          <span class="switch small" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <section>
+        <span class="eyebrow">Presets</span>
+        <div class="presets" role="group" aria-label="Presets">
+          <button type="button" data-preset="soft">Soft</button>
+          <button type="button" data-preset="night">Night</button>
+          <button type="button" data-preset="sunset">Sunset</button>
+          <button type="button" data-preset="contrast">Contrast</button>
+          <button type="button" data-preset="reading">Reading</button>
+        </div>
+      </section>
+
+      <section class="sliders" id="sliders">
+        <label>
+          <span>Brightness <b id="brightness-val">100%</b></span>
+          <input id="brightness" type="range" min="50" max="150" value="100" />
+        </label>
+        <label>
+          <span>Contrast <b id="contrast-val">100%</b></span>
+          <input id="contrast" type="range" min="50" max="150" value="100" />
+        </label>
+        <label>
+          <span>Warmth <b id="warmth-val">20</b></span>
+          <input id="warmth" type="range" min="0" max="80" value="20" />
+        </label>
+        <label>
+          <span>Dim <b id="dim-val">0</b></span>
+          <input id="dim" type="range" min="0" max="70" value="0" />
+        </label>
+      </section>
+
+      <label class="remember">
+        <input id="remember" type="checkbox" />
+        <span>Remember for this site</span>
+      </label>
+
+      <div class="actions">
+        <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+        <button type="button" id="reset-site" class="text-btn">Reset this site</button>
+      </div>
+    </div>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>
