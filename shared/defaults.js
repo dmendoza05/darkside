@@ -21,11 +21,29 @@ const DARKSIDE_PRESETS = {
 
 const DARKSIDE_TUNE_KEYS = ["darkMode", "brightness", "contrast", "warmth", "dim"];
 
+function darksideClamp(value, min, max, fallback) {
+  const n = Number(value);
+  if (Number.isNaN(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
 function darksideNormalize(stored) {
   const raw = stored && typeof stored === "object" ? stored : {};
   const siteOverrides =
-    raw.siteOverrides && typeof raw.siteOverrides === "object" ? raw.siteOverrides : {};
-  return { ...DARKSIDE_DEFAULTS, ...raw, siteOverrides };
+    raw.siteOverrides && typeof raw.siteOverrides === "object" && !Array.isArray(raw.siteOverrides)
+      ? raw.siteOverrides
+      : {};
+  const merged = { ...DARKSIDE_DEFAULTS, ...raw, siteOverrides };
+  merged.enabled = Boolean(merged.enabled);
+  merged.darkMode = Boolean(merged.darkMode);
+  merged.autoNight = Boolean(merged.autoNight);
+  merged.brightness = darksideClamp(merged.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness);
+  merged.contrast = darksideClamp(merged.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast);
+  merged.warmth = darksideClamp(merged.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth);
+  merged.dim = darksideClamp(merged.dim, 0, 70, DARKSIDE_DEFAULTS.dim);
+  merged.autoNightStart = merged.autoNightStart || DARKSIDE_DEFAULTS.autoNightStart;
+  merged.autoNightEnd = merged.autoNightEnd || DARKSIDE_DEFAULTS.autoNightEnd;
+  return merged;
 }
 
 function darksideMinutes(hhmm) {

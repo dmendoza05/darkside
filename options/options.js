@@ -50,7 +50,7 @@ function renderSites() {
         <input type="checkbox" class="site-on" />
         <span class="switch small"></span>
       </label>
-      <button type="button" data-host="${host}">Remove</button>
+      <button type="button">Remove</button>
     `;
     item.querySelector(".host").textContent = host;
     item.querySelector(".state").textContent = enabled ? "On" : "Off";

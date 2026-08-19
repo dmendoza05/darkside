@@ -7,6 +7,7 @@ const restrictedEl = document.getElementById("restricted");
 const mainEl = document.getElementById("main");
 const slidersEl = document.getElementById("sliders");
 const presetsEl = document.querySelector(".presets");
+const alreadyDarkEl = document.getElementById("already-dark");
 
 const sliderIds = ["brightness", "contrast", "warmth", "dim"];
 
@@ -93,11 +94,30 @@ function nextPayload(partial = {}, useOverride = rememberEl.checked) {
   return next;
 }
 
+async function refreshSkipHint() {
+  if (!alreadyDarkEl || restricted || !hostname) {
+    if (alreadyDarkEl) alreadyDarkEl.hidden = true;
+    return;
+  }
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id) {
+      alreadyDarkEl.hidden = true;
+      return;
+    }
+    const status = await chrome.tabs.sendMessage(tab.id, { type: "darkside-status" }, { frameId: 0 });
+    alreadyDarkEl.hidden = !status?.skippedAlreadyDark;
+  } catch {
+    alreadyDarkEl.hidden = true;
+  }
+}
+
 async function persist(next) {
   saving = true;
   stored = darksideNormalize(next);
   await chrome.storage.local.set(stored);
   saving = false;
+  setTimeout(refreshSkipHint, 120);
 }
 
 async function load() {
@@ -115,6 +135,7 @@ async function load() {
   stored = darksideNormalize(await chrome.storage.local.get(null));
   const effective = darksideEffective(stored, hostname);
   paintForm(effective, effective._hasOverride);
+  await refreshSkipHint();
 }
 
 siteEnabledEl.addEventListener("change", async () => {

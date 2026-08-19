@@ -19,6 +19,45 @@
     }
   }
 
+  function markedDark() {
+    const mode = (
+      html.getAttribute("data-color-mode") ||
+      html.getAttribute("data-theme") ||
+      html.getAttribute("data-bs-theme") ||
+      html.getAttribute("data-color-scheme") ||
+      ""
+    ).toLowerCase();
+
+    if (mode === "dark" || mode === "darker") return true;
+    if ((mode === "auto" || mode === "system") && darkSchemePreferred()) return true;
+    if (html.hasAttribute("dark") || html.getAttribute("theme") === "dark") return true;
+    if (
+      html.classList.contains("dark") ||
+      html.classList.contains("dark-theme") ||
+      html.classList.contains("theme-dark") ||
+      html.classList.contains("darkmode")
+    ) {
+      return true;
+    }
+
+    const colorScheme = (html.getAttribute("color-scheme") || "").toLowerCase();
+    if (colorScheme === "dark") return true;
+
+    const meta = document.querySelector('meta[name="color-scheme"]');
+    const metaContent = (meta?.getAttribute("content") || "").toLowerCase();
+    if (metaContent.split(/[,\s]+/).includes("dark") && !metaContent.includes("light")) return true;
+
+    return false;
+  }
+
+  function darkSchemePreferred() {
+    try {
+      return Boolean(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+    } catch {
+      return false;
+    }
+  }
+
   function parseColor(color) {
     const m = String(color).match(
       /rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)(?:[,\s/]+([\d.]+))?\s*\)/i
@@ -39,6 +78,13 @@
   }
 
   function originallyDark() {
+    if (markedDark()) return true;
+    try {
+      const scheme = String(getComputedStyle(html).colorScheme || "");
+      if (/\bdark\b/i.test(scheme) && !/\blight\b/i.test(scheme)) return true;
+    } catch {
+      /* ignore */
+    }
     html.removeAttribute("data-darkside-fill");
     const htmlL = luminance(getComputedStyle(html).backgroundColor);
     const bodyL = document.body
@@ -123,10 +169,10 @@
     document.addEventListener("DOMContentLoaded", callback, { once: true });
   }
 
+  skippedAlreadyDark = markedDark();
   apply(DARKSIDE_DEFAULTS);
 
   chrome.storage.local.get(null, (stored) => {
-    skippedAlreadyDark = false;
     apply(stored);
     whenReady(() => {
       detectAlreadyDark();
@@ -137,16 +183,25 @@
   chrome.storage.onChanged.addListener((_changes, area) => {
     if (area !== "local") return;
     chrome.storage.local.get(null, (stored) => {
-      skippedAlreadyDark = false;
+      skippedAlreadyDark = markedDark();
       apply(stored);
       detectAlreadyDark();
     });
   });
 
-  chrome.runtime.onMessage.addListener((message) => {
-    if (!message || message.type !== "darkside-apply") return;
-    skippedAlreadyDark = false;
-    apply(message.settings || lastSettings);
+  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+    if (!message) return;
+    if (message.type === "darkside-apply") {
+      skippedAlreadyDark = markedDark();
+      apply(message.settings || lastSettings);
+      return;
+    }
+    if (message.type === "darkside-status") {
+      sendResponse({
+        skippedAlreadyDark,
+        invert: html.getAttribute("data-darkside-invert") === "1",
+      });
+    }
   });
 
   setInterval(() => {

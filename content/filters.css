@@ -12,13 +12,14 @@ html[data-darkside][data-darkside-invert="1"][data-darkside-fill="1"] {
   background-color: #ffffff !important;
 }
 
-html[data-darkside][data-darkside-invert="1"] img,
-html[data-darkside][data-darkside-invert="1"] video,
-html[data-darkside][data-darkside-invert="1"] picture,
-html[data-darkside][data-darkside-invert="1"] canvas,
-html[data-darkside][data-darkside-invert="1"] iframe,
-html[data-darkside][data-darkside-invert="1"] embed,
-html[data-darkside][data-darkside-invert="1"] object {
+/* Uninvert replaced media so photos/video stay true-color.
+   Do not uninvert <picture> — the inner <img> already cancels invert.
+   Do not uninvert inline <svg> icons — they should follow the page. */
+html[data-darkside][data-darkside-invert="1"] :is(img, video, canvas, iframe, embed, object) {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] svg:has(> image) {
   filter: invert(1) hue-rotate(180deg) !important;
 }
 
