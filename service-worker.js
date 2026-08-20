@@ -13,14 +13,31 @@ async function ensureDefaults() {
   await syncBadge(next);
 }
 
+function siteDisabled(settings, url) {
+  if (!settings.enabled) return true;
+  if (darksideIsRestrictedUrl(url)) return false;
+  const host = darksideHostnameFromUrl(url);
+  const override = host ? settings.siteOverrides[host] : null;
+  return Boolean(override && override.enabled === false);
+}
+
+async function applyBadgeToTab(tab, settings) {
+  if (!tab?.id) return;
+  const off = tab.url ? siteDisabled(settings, tab.url) : !settings.enabled;
+  await chrome.action.setBadgeText({ tabId: tab.id, text: off ? "OFF" : "" });
+}
+
 async function syncBadge(stored) {
-  const settings = stored || darksideNormalize(await chrome.storage.local.get(null));
-  const on = Boolean(settings.enabled);
-  await chrome.action.setBadgeText({ text: on ? "" : "OFF" });
+  const settings = darksideNormalize(stored || (await chrome.storage.local.get(null)));
   await chrome.action.setBadgeBackgroundColor({ color: "#2a2a2a" });
   if (chrome.action.setBadgeTextColor) {
     await chrome.action.setBadgeTextColor({ color: "#F5C75D" });
   }
+  // Older builds set a global "OFF" that stuck on every tab. Clear it.
+  await chrome.action.setBadgeText({ text: "" });
+
+  const tabs = await chrome.tabs.query({});
+  await Promise.all(tabs.map((tab) => applyBadgeToTab(tab, settings)));
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -34,6 +51,18 @@ chrome.runtime.onStartup.addListener(() => {
 chrome.storage.onChanged.addListener(async (_changes, area) => {
   if (area !== "local") return;
   await syncBadge();
+});
+
+chrome.tabs.onActivated.addListener(async ({ tabId }) => {
+  const settings = darksideNormalize(await chrome.storage.local.get(null));
+  const tab = await chrome.tabs.get(tabId).catch(() => null);
+  if (tab) await applyBadgeToTab(tab, settings);
+});
+
+chrome.tabs.onUpdated.addListener(async (tabId, changeInfo, tab) => {
+  if (!changeInfo.url && changeInfo.status !== "complete") return;
+  const settings = darksideNormalize(await chrome.storage.local.get(null));
+  await applyBadgeToTab(tab, settings);
 });
 
 chrome.commands.onCommand.addListener(async (command) => {
