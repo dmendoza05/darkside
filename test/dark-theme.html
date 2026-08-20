@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Dark theme — Darkside test</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body class="dark-fixture" style="background-color: #0c0b09; color: #f4f1ea">
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dark-theme.html" aria-current="page">Dark theme</a>
+        <a href="images.html">Images</a>
+        <a href="presets.html">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Already dark by luminance.</h1>
+        <p class="lede">
+          This page has no dark-mode attributes. The body is near-black
+          (<code>#0c0b09</code>, luminance well under 0.28), which is how Darkside decides
+          a site designed itself dark.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>Pass if</strong>
+        <p>
+          Invert stays off. The page remains dark (cream text on black), not a washed-out
+          negative. The popup should say this site already looks dark. Turning
+          <strong>Dark Mode</strong> on in the popup should invert it anyway.
+        </p>
+      </div>
+
+      <section class="grid">
+        <article class="card">
+          <span class="badge">Reference</span>
+          <h2>Page chrome</h2>
+          <p class="meta">
+            CSS red/blue boxes. If invert wrongly runs, red becomes cyan and the whole
+            sheet goes light.
+          </p>
+          <div class="swatches">
+            <div class="swatch red" title="red"></div>
+            <div class="swatch blue" title="blue"></div>
+            <div class="swatch yellow" title="yellow"></div>
+            <div class="swatch white" title="white"></div>
+          </div>
+        </article>
+        <article class="card">
+          <span class="badge">Photo</span>
+          <h2>True-color check</h2>
+          <p class="meta">A sunset should still look warm, not teal, whether invert is skipped or forced.</p>
+          <img class="media" src="assets/sunset.png" alt="Warm sunset landscape" width="640" height="360" />
+        </article>
+      </section>
+
+      <section class="section">
+        <h2>Other detection variants</h2>
+        <p class="meta">Same expected result: skip invert until the user forces Dark Mode.</p>
+        <ul class="variant-list">
+          <li>
+            <a href="dark-theme-marked.html">
+              <strong>data-theme="dark"</strong> — marked dark even though the paint is light.
+            </a>
+          </li>
+          <li>
+            <a href="dark-theme-class.html">
+              <strong>html.dark</strong> — class-based theme, GitHub/Tailwind style.
+            </a>
+          </li>
+        </ul>
+      </section>
+    </main>
+  </body>
+</html>

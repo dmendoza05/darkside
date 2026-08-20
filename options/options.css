@@ -208,11 +208,22 @@ input[type="range"]::-webkit-slider-thumb {
 }
 
 .site-list .host {
-  flex: 1;
+  display: block;
   overflow: hidden;
   font-weight: 600;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.site-meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.site-list .tune {
+  display: block;
+  color: var(--gold-muted);
+  font-size: 12px;
 }
 
 .site-list .state {

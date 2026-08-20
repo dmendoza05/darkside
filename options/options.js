@@ -1,5 +1,6 @@
 const enabledEl = document.getElementById("enabled");
 const darkModeEl = document.getElementById("darkMode");
+const tuneEnabledEl = document.getElementById("tuneEnabled");
 const autoNightEl = document.getElementById("autoNight");
 const autoNightStartEl = document.getElementById("autoNightStart");
 const autoNightEndEl = document.getElementById("autoNightEnd");
@@ -24,6 +25,7 @@ function setSlider(id, value) {
 function paintGlobals() {
   enabledEl.checked = Boolean(stored.enabled);
   darkModeEl.checked = Boolean(stored.darkMode);
+  tuneEnabledEl.checked = Boolean(stored.tuneEnabled);
   autoNightEl.checked = Boolean(stored.autoNight);
   autoNightStartEl.value = stored.autoNightStart;
   autoNightEndEl.value = stored.autoNightEnd;
@@ -44,7 +46,10 @@ function renderSites() {
     const enabled = override.enabled !== false;
     const item = document.createElement("li");
     item.innerHTML = `
-      <span class="host"></span>
+      <div class="site-meta">
+        <span class="host"></span>
+        <span class="tune"></span>
+      </div>
       <span class="state"></span>
       <label class="mini-toggle">
         <input type="checkbox" class="site-on" />
@@ -53,6 +58,11 @@ function renderSites() {
       <button type="button">Remove</button>
     `;
     item.querySelector(".host").textContent = host;
+    const brightness = override.brightness ?? stored.brightness;
+    const contrast = override.contrast ?? stored.contrast;
+    const warmth = override.warmth ?? stored.warmth;
+    const dim = override.dim ?? stored.dim;
+    item.querySelector(".tune").textContent = `B ${brightness} · C ${contrast} · W ${warmth} · D ${dim}`;
     item.querySelector(".state").textContent = enabled ? "On" : "Off";
     const toggle = item.querySelector(".site-on");
     toggle.checked = enabled;
@@ -88,6 +98,7 @@ async function saveGlobals() {
   const next = darksideNormalize(stored);
   next.enabled = enabledEl.checked;
   next.darkMode = darkModeEl.checked;
+  next.tuneEnabled = tuneEnabledEl.checked;
   next.autoNight = autoNightEl.checked;
   next.autoNightStart = autoNightStartEl.value || DARKSIDE_DEFAULTS.autoNightStart;
   next.autoNightEnd = autoNightEndEl.value || DARKSIDE_DEFAULTS.autoNightEnd;
@@ -98,7 +109,7 @@ async function saveGlobals() {
   await persist(next);
 }
 
-["enabled", "darkMode", "autoNight", "autoNightStart", "autoNightEnd"].forEach((id) => {
+["enabled", "darkMode", "tuneEnabled", "autoNight", "autoNightStart", "autoNightEnd"].forEach((id) => {
   document.getElementById(id).addEventListener("change", saveGlobals);
 });
 

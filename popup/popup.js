@@ -1,12 +1,12 @@
 const darkModeEl = document.getElementById("darkMode");
+const tuneEnabledEl = document.getElementById("tuneEnabled");
 const siteEnabledEl = document.getElementById("siteEnabled");
 const siteStateEl = document.getElementById("site-state");
 const hostnameEl = document.getElementById("hostname");
-const rememberEl = document.getElementById("remember");
 const restrictedEl = document.getElementById("restricted");
 const mainEl = document.getElementById("main");
-const slidersEl = document.getElementById("sliders");
-const presetsEl = document.querySelector(".presets");
+const pageControlsEl = document.getElementById("page-controls");
+const tunePanelEl = document.getElementById("tune-panel");
 const alreadyDarkEl = document.getElementById("already-dark");
 
 const sliderIds = ["brightness", "contrast", "warmth", "dim"];
@@ -21,20 +21,19 @@ function sliderValue(id) {
   return Number(el.value);
 }
 
-function setSlider(id, value, suffix = "") {
+function setSlider(id, value) {
   const el = document.getElementById(id);
   const label = document.getElementById(`${id}-val`);
   el.value = String(value);
   if (id === "brightness" || id === "contrast") {
     label.textContent = `${value}%`;
   } else {
-    label.textContent = `${value}${suffix}`;
+    label.textContent = String(value);
   }
 }
 
-function currentTune() {
+function currentSliders() {
   return {
-    darkMode: darkModeEl.checked,
     brightness: sliderValue("brightness"),
     contrast: sliderValue("contrast"),
     warmth: sliderValue("warmth"),
@@ -42,17 +41,36 @@ function currentTune() {
   };
 }
 
-function paintForm(effective, hasOverride) {
+function setInteractive(on) {
+  siteEnabledEl.disabled = !on;
+  darkModeEl.disabled = !on;
+  tuneEnabledEl.disabled = !on;
+  sliderIds.forEach((id) => {
+    document.getElementById(id).disabled = !on;
+  });
+  document.getElementById("reset-sliders").disabled = !on;
+  document.getElementById("reset-site").disabled = !on;
+  document.querySelectorAll(".presets button").forEach((btn) => {
+    btn.disabled = !on;
+  });
+}
+
+function setTunePanel() {
+  const siteOn = siteEnabledEl.checked;
+  pageControlsEl.classList.toggle("is-disabled", !restricted && !siteOn);
+  tunePanelEl.hidden = restricted || !(siteOn && tuneEnabledEl.checked);
+}
+
+function paintForm(effective) {
   darkModeEl.checked = Boolean(effective.darkMode);
+  tuneEnabledEl.checked = Boolean(effective.tuneEnabled);
   siteEnabledEl.checked = Boolean(effective.enabled);
   siteStateEl.textContent = effective.enabled ? "On" : "Off";
-  rememberEl.checked = Boolean(hasOverride);
   setSlider("brightness", effective.brightness);
   setSlider("contrast", effective.contrast);
   setSlider("warmth", effective.warmth);
   setSlider("dim", effective.dim);
-  slidersEl.classList.toggle("is-disabled", !effective.enabled);
-  presetsEl.classList.toggle("is-disabled", !effective.enabled);
+  setTunePanel();
   highlightPreset(effective);
 }
 
@@ -61,7 +79,6 @@ function highlightPreset(tune) {
     const preset = DARKSIDE_PRESETS[btn.dataset.preset];
     const match =
       preset &&
-      preset.darkMode === Boolean(tune.darkMode) &&
       Number(preset.brightness) === Number(tune.brightness) &&
       Number(preset.contrast) === Number(tune.contrast) &&
       Number(preset.warmth) === Number(tune.warmth) &&
@@ -70,15 +87,16 @@ function highlightPreset(tune) {
   });
 }
 
-function nextPayload(partial = {}, useOverride = rememberEl.checked) {
-  const tune = { ...currentTune(), ...partial };
+function nextPayload(partial = {}) {
+  const tune = {
+    ...currentSliders(),
+    darkMode: darkModeEl.checked,
+    tuneEnabled: tuneEnabledEl.checked,
+    ...partial,
+  };
   const next = darksideNormalize(stored);
 
   if (restricted || !hostname) {
-    return { ...next, ...tune };
-  }
-
-  if (!useOverride) {
     return { ...next, ...tune };
   }
 
@@ -141,80 +159,68 @@ async function load() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   restricted = darksideIsRestrictedUrl(tab?.url);
   hostname = restricted ? "" : darksideHostnameFromUrl(tab?.url);
-  hostnameEl.textContent = hostname || "unavailable";
+  hostnameEl.textContent = darksideDisplayHost(tab?.url);
+
+  stored = darksideNormalize(await chrome.storage.local.get(null));
+  paintForm(darksideEffective(stored, hostname));
+
+  restrictedEl.hidden = !restricted;
+  mainEl.classList.toggle("is-restricted", restricted);
+  setInteractive(!restricted);
 
   if (restricted) {
-    restrictedEl.hidden = false;
-    mainEl.hidden = true;
+    alreadyDarkEl.hidden = true;
     return;
   }
 
-  stored = darksideNormalize(await chrome.storage.local.get(null));
-  const effective = darksideEffective(stored, hostname);
-  paintForm(effective, effective._hasOverride);
   await refreshSkipHint();
 }
 
 siteEnabledEl.addEventListener("change", async () => {
-  const next = darksideNormalize(stored);
+  if (restricted) return;
   const enabled = siteEnabledEl.checked;
   siteStateEl.textContent = enabled ? "On" : "Off";
-  slidersEl.classList.toggle("is-disabled", !enabled);
-  presetsEl.classList.toggle("is-disabled", !enabled);
-
-  const existing = next.siteOverrides[hostname] || {};
-  if (enabled) {
-    if (Object.keys(existing).every((key) => key === "enabled")) {
-      delete next.siteOverrides[hostname];
-    } else {
-      next.siteOverrides[hostname] = { ...existing, enabled: true };
-    }
-  } else {
-    next.siteOverrides[hostname] = { ...existing, enabled: false };
-    rememberEl.checked = true;
-  }
-  await persist(next);
+  setTunePanel();
+  await persist(nextPayload({ enabled }));
 });
 
 darkModeEl.addEventListener("change", async () => {
+  if (restricted) return;
   await persist(nextPayload({ darkMode: darkModeEl.checked }));
   await tellTabInvert(darkModeEl.checked);
-  highlightPreset(currentTune());
+});
+
+tuneEnabledEl.addEventListener("change", async () => {
+  if (restricted) return;
+  setTunePanel();
+  await persist(nextPayload({ tuneEnabled: tuneEnabledEl.checked }));
 });
 
 sliderIds.forEach((id) => {
   document.getElementById(id).addEventListener("input", async () => {
+    if (restricted) return;
     setSlider(id, sliderValue(id));
-    highlightPreset(currentTune());
+    highlightPreset(currentSliders());
     await persist(nextPayload());
   });
 });
 
 document.querySelectorAll(".presets button").forEach((btn) => {
   btn.addEventListener("click", async () => {
+    if (restricted) return;
     const preset = DARKSIDE_PRESETS[btn.dataset.preset];
     if (!preset) return;
-    paintForm({ ...preset, enabled: siteEnabledEl.checked }, rememberEl.checked);
+    setSlider("brightness", preset.brightness);
+    setSlider("contrast", preset.contrast);
+    setSlider("warmth", preset.warmth);
+    setSlider("dim", preset.dim);
+    highlightPreset(preset);
     await persist(nextPayload(preset));
-    await tellTabInvert(Boolean(preset.darkMode));
   });
 });
 
-rememberEl.addEventListener("change", async () => {
-  const next = darksideNormalize(stored);
-  if (rememberEl.checked) {
-    next.siteOverrides[hostname] = {
-      ...(next.siteOverrides[hostname] || {}),
-      ...currentTune(),
-      enabled: siteEnabledEl.checked,
-    };
-  } else if (next.siteOverrides[hostname]) {
-    delete next.siteOverrides[hostname];
-  }
-  await persist(next);
-});
-
 document.getElementById("reset-sliders").addEventListener("click", async () => {
+  if (restricted) return;
   const defaults = {
     brightness: DARKSIDE_DEFAULTS.brightness,
     contrast: DARKSIDE_DEFAULTS.contrast,
@@ -225,17 +231,17 @@ document.getElementById("reset-sliders").addEventListener("click", async () => {
   setSlider("contrast", defaults.contrast);
   setSlider("warmth", defaults.warmth);
   setSlider("dim", defaults.dim);
-  highlightPreset({ ...currentTune(), ...defaults });
+  highlightPreset(defaults);
   await persist(nextPayload(defaults));
 });
 
 document.getElementById("reset-site").addEventListener("click", async () => {
+  if (restricted || !hostname) return;
   const next = darksideNormalize(stored);
   delete next.siteOverrides[hostname];
-  rememberEl.checked = false;
   stored = next;
   await persist(next);
-  paintForm(darksideEffective(next, hostname), false);
+  paintForm(darksideEffective(next, hostname));
 });
 
 document.getElementById("open-options").addEventListener("click", () => {
@@ -246,8 +252,7 @@ chrome.storage.onChanged.addListener((_changes, area) => {
   if (area !== "local" || saving || restricted) return;
   chrome.storage.local.get(null, (value) => {
     stored = darksideNormalize(value);
-    const effective = darksideEffective(stored, hostname);
-    paintForm(effective, effective._hasOverride);
+    paintForm(darksideEffective(stored, hostname));
   });
 });
 

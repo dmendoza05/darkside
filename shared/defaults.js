@@ -1,6 +1,7 @@
 const DARKSIDE_DEFAULTS = {
   enabled: true,
   darkMode: true,
+  tuneEnabled: true,
   brightness: 100,
   contrast: 100,
   warmth: 20,
@@ -12,14 +13,14 @@ const DARKSIDE_DEFAULTS = {
 };
 
 const DARKSIDE_PRESETS = {
-  soft: { darkMode: true, brightness: 100, contrast: 100, warmth: 15, dim: 0 },
-  night: { darkMode: true, brightness: 85, contrast: 105, warmth: 45, dim: 25 },
-  sunset: { darkMode: true, brightness: 95, contrast: 100, warmth: 70, dim: 10 },
-  contrast: { darkMode: true, brightness: 105, contrast: 135, warmth: 8, dim: 0 },
-  reading: { darkMode: true, brightness: 92, contrast: 110, warmth: 35, dim: 8 },
+  soft: { brightness: 100, contrast: 100, warmth: 15, dim: 0 },
+  night: { brightness: 85, contrast: 105, warmth: 45, dim: 25 },
+  sunset: { brightness: 95, contrast: 100, warmth: 70, dim: 10 },
+  contrast: { brightness: 105, contrast: 135, warmth: 8, dim: 0 },
+  reading: { brightness: 92, contrast: 110, warmth: 35, dim: 8 },
 };
 
-const DARKSIDE_TUNE_KEYS = ["darkMode", "brightness", "contrast", "warmth", "dim"];
+const DARKSIDE_TUNE_KEYS = ["darkMode", "tuneEnabled", "brightness", "contrast", "warmth", "dim"];
 
 function darksideClamp(value, min, max, fallback) {
   const n = Number(value);
@@ -36,6 +37,7 @@ function darksideNormalize(stored) {
   const merged = { ...DARKSIDE_DEFAULTS, ...raw, siteOverrides };
   merged.enabled = Boolean(merged.enabled);
   merged.darkMode = Boolean(merged.darkMode);
+  merged.tuneEnabled = merged.tuneEnabled !== false;
   merged.autoNight = Boolean(merged.autoNight);
   merged.brightness = darksideClamp(merged.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness);
   merged.contrast = darksideClamp(merged.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast);
@@ -80,8 +82,10 @@ function darksideEffective(stored, hostname) {
     const userForcedLight = override && override.darkMode === false;
     if (!userForcedLight) {
       merged.darkMode = true;
-      merged.warmth = Math.max(Number(merged.warmth) || 0, 45);
-      merged.dim = Math.max(Number(merged.dim) || 0, 15);
+      if (merged.tuneEnabled) {
+        merged.warmth = Math.max(Number(merged.warmth) || 0, 45);
+        merged.dim = Math.max(Number(merged.dim) || 0, 15);
+      }
     }
   }
 
@@ -93,14 +97,19 @@ function darksideEffective(stored, hostname) {
 
 function darksideCssVars(effective) {
   const invert = effective.enabled && effective.darkMode ? 1 : 0;
-  const dimFactor = 1 - (Number(effective.dim) / 100) * 0.85;
-  const brightness = (Number(effective.brightness) / 100) * dimFactor;
+  const tuneOn = Boolean(effective.enabled && effective.tuneEnabled);
+  const brightnessVal = tuneOn ? Number(effective.brightness) : 100;
+  const contrastVal = tuneOn ? Number(effective.contrast) : 100;
+  const warmthVal = tuneOn ? Number(effective.warmth) : 0;
+  const dimVal = tuneOn ? Number(effective.dim) : 0;
+  const dimFactor = 1 - (dimVal / 100) * 0.85;
+  const brightness = (brightnessVal / 100) * dimFactor;
   return {
     invert,
     hue: invert ? "180deg" : "0deg",
     brightness: brightness.toFixed(3),
-    contrast: (Number(effective.contrast) / 100).toFixed(3),
-    sepia: ((Number(effective.warmth) / 100) * 0.65).toFixed(3),
+    contrast: (contrastVal / 100).toFixed(3),
+    sepia: ((warmthVal / 100) * 0.65).toFixed(3),
   };
 }
 
@@ -109,6 +118,21 @@ function darksideHostnameFromUrl(url) {
     return new URL(url).hostname || "";
   } catch {
     return "";
+  }
+}
+
+function darksideDisplayHost(url) {
+  if (!url) return "unavailable";
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return parsed.hostname || "unavailable";
+    }
+    parsed.search = "";
+    parsed.hash = "";
+    return parsed.href;
+  } catch {
+    return url;
   }
 }
 

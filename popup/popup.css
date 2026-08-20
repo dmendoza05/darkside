@@ -78,7 +78,19 @@ h1 {
 }
 
 .restricted {
-  margin: 16px 14px;
+  margin: 0;
+}
+
+#main.is-restricted .site-card,
+#main.is-restricted #page-controls,
+#main.is-restricted .actions {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+#main.is-restricted .site-toggle,
+#main.is-restricted .dark-toggle {
+  cursor: not-allowed;
 }
 
 .hint strong {
@@ -104,8 +116,7 @@ h1 {
 }
 
 .dark-toggle,
-.site-toggle,
-.remember {
+.site-toggle {
   display: flex;
   align-items: center;
   cursor: pointer;
@@ -133,8 +144,7 @@ h1 {
 }
 
 .dark-toggle input,
-.site-toggle input,
-.remember input {
+.site-toggle input {
   position: absolute;
   opacity: 0;
   pointer-events: none;
@@ -217,6 +227,27 @@ input:focus-visible + .switch {
   font-size: 12px;
 }
 
+#page-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#page-controls.is-disabled {
+  opacity: 0.4;
+  pointer-events: none;
+}
+
+#tune-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+#tune-panel[hidden] {
+  display: none;
+}
+
 .presets {
   display: flex;
   flex-wrap: wrap;
@@ -278,23 +309,9 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
 }
 
-.remember {
-  gap: 8px;
-  color: var(--text-muted);
-}
-
-.remember input {
-  position: static;
-  width: 14px;
-  height: 14px;
-  opacity: 1;
-  pointer-events: auto;
-  accent-color: var(--gold);
-}
-
 .actions {
   display: flex;
-  justify-content: space-between;
+  justify-content: flex-end;
 }
 
 .text-btn {
@@ -314,8 +331,3 @@ input[type="range"]::-webkit-slider-thumb {
   color: var(--danger);
 }
 
-.sliders.is-disabled,
-.presets.is-disabled {
-  opacity: 0.4;
-  pointer-events: none;
-}

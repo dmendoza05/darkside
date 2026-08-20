@@ -1,8 +1,6 @@
 # Darkside
 
-Darkside is a Chrome extension that makes any website easier on the eyes. It can invert a page into dark mode while keeping photos and videos looking normal, then let you tune brightness, contrast, warmth, and dim. Use a preset for a one-tap look, or save different settings per site.
-
-Dark Mode is a switch: turn it on and the current page inverts. Sites that already look dark stay as they are until you turn Dark Mode on. Eye-care sliders still work even when invert is off.
+Darkside is a Chrome extension that makes any website easier on the eyes. Turn on Dark Mode to invert a page (photos and videos stay true-color), or leave invert off and only use brightness, contrast, warmth, and dim. Presets change those eye-care sliders and do not turn invert on. Each site keeps its own slider and Dark Mode settings.
 
 This project is still in the works and unpublished. If you want to use it, clone the repo and run the extension locally — see [Run locally](#run-locally).
 
@@ -12,7 +10,7 @@ Popup — dark mode, this-site toggle, presets, and sliders:
 
 <img src="docs/popup.png" alt="Darkside popup" width="360" />
 
-Settings — global defaults, auto night, and site overrides:
+Settings — global defaults, auto night, and per-site settings:
 
 <img src="docs/settings.png" alt="Darkside settings" width="720" />
 
@@ -38,10 +36,10 @@ After you change the code, click **Reload** on the Darkside card in `chrome://ex
 
 - **Dark Mode** — invert the current page; images and video stay true-color
 - **This site** — turn Darkside off for the current hostname
-- **Presets** — Soft, Night, Sunset, Contrast, Reading
-- **Sliders** — Brightness, Contrast, Warmth, Dim
-- **Remember for this site** — keep slider/preset overrides for this hostname
-- **Settings** (gear) — global defaults, auto-night window, and a list of site overrides
+- **Presets** — Soft, Night, Sunset, Contrast, Reading (eye-care only; does not turn on invert)
+- **Sliders** — Brightness, Contrast, Warmth, Dim (work with Dark Mode off). Changes save for the current site
+- **Reset this site** — drop that site’s custom settings and use the global defaults
+- **Settings** (gear) — global defaults, auto-night window, and a list of per-site settings
 
 Keyboard shortcut: `Alt` + `Shift` + `D` toggles dark mode on the current tab. Change it at `chrome://extensions/shortcuts`.
 
