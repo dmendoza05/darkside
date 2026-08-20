@@ -11,6 +11,41 @@ const emptyEl = document.getElementById("empty");
 let stored = darksideNormalize({});
 let saving = false;
 
+function showTab(name) {
+  const allowed = new Set(["settings", "sites", "help"]);
+  const tab = allowed.has(name) ? name : "settings";
+  document.querySelectorAll(".tab").forEach((btn) => {
+    btn.classList.toggle("is-active", btn.dataset.tab === tab);
+  });
+  document.querySelectorAll(".panel").forEach((panel) => {
+    const active = panel.id === `panel-${tab}`;
+    panel.classList.toggle("is-active", active);
+    panel.hidden = !active;
+  });
+  if (location.hash !== `#${tab}`) {
+    try {
+      history.replaceState(null, "", `#${tab}`);
+    } catch {
+      /* ignore */
+    }
+  }
+}
+
+document.querySelectorAll(".tab").forEach((btn) => {
+  btn.addEventListener("click", () => showTab(btn.dataset.tab));
+});
+
+window.addEventListener("hashchange", () => {
+  showTab(location.hash.replace("#", ""));
+});
+
+showTab(location.hash.replace("#", ""));
+
+const versionEl = document.getElementById("app-version");
+if (versionEl && chrome.runtime?.getManifest) {
+  versionEl.textContent = `v${chrome.runtime.getManifest().version}`;
+}
+
 function setSlider(id, value) {
   const el = document.getElementById(id);
   const label = document.getElementById(`${id}-val`);

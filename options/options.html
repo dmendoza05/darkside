@@ -3,104 +3,192 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Darkside settings</title>
+    <title>Darkside</title>
     <link rel="stylesheet" href="options.css" />
   </head>
   <body>
-    <main>
-      <header class="header">
-        <img class="logo" src="../icons/logo.png" alt="" width="40" height="40" />
-        <div>
-          <h1>Darkside</h1>
-          <p>Dark mode and eye care for any website</p>
+    <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-row">
+          <img class="logo" src="../icons/logo.png" alt="" width="36" height="36" />
+          <span class="brand-name">
+            <strong>Darkside</strong>
+            <span id="app-version" class="version"></span>
+          </span>
         </div>
-      </header>
-
-      <section class="card">
-        <h2>Global defaults</h2>
-        <label class="toggle-row">
-          <span>
-            <strong>Enable Darkside</strong>
-            <small>Master switch for every site</small>
-          </span>
-          <input id="enabled" type="checkbox" />
-          <span class="switch"></span>
-        </label>
-        <label class="toggle-row">
-          <span>
-            <strong>Dark Mode</strong>
-            <small>Default invert for sites without an override</small>
-          </span>
-          <input id="darkMode" type="checkbox" />
-          <span class="switch"></span>
-        </label>
-        <label class="toggle-row">
-          <span>
-            <strong>Eye care</strong>
-            <small>Default brightness, contrast, warmth, dim, and presets</small>
-          </span>
-          <input id="tuneEnabled" type="checkbox" />
-          <span class="switch"></span>
-        </label>
-
-        <div class="sliders">
-          <label>
-            <span>Brightness <b id="brightness-val">100%</b></span>
-            <input id="brightness" type="range" min="50" max="150" value="100" />
-          </label>
-          <label>
-            <span>Contrast <b id="contrast-val">100%</b></span>
-            <input id="contrast" type="range" min="50" max="150" value="100" />
-          </label>
-          <label>
-            <span>Warmth <b id="warmth-val">20</b></span>
-            <input id="warmth" type="range" min="0" max="80" value="20" />
-          </label>
-          <label>
-            <span>Dim <b id="dim-val">0</b></span>
-            <input id="dim" type="range" min="0" max="70" value="0" />
-          </label>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Auto night</h2>
-        <label class="toggle-row">
-          <span>
-            <strong>Enable after hours</strong>
-            <small>Turns on dark mode and extra warmth in this window</small>
-          </span>
-          <input id="autoNight" type="checkbox" />
-          <span class="switch"></span>
-        </label>
-        <div class="times">
-          <label>
-            From
-            <input id="autoNightStart" type="time" />
-          </label>
-          <label>
-            To
-            <input id="autoNightEnd" type="time" />
-          </label>
-        </div>
-      </section>
-
-      <section class="card">
-        <h2>Site settings</h2>
-        <input id="search" class="search" type="search" placeholder="Search sites" />
-        <ul id="site-list" class="site-list"></ul>
-        <p id="empty" class="empty">No per-site settings yet. Change sliders or presets on a page to save them for that site.</p>
-      </section>
-
-      <section class="card">
+        <span class="slogan">Let your eyes join the dark side</span>
+      </div>
+      <nav class="tabs" aria-label="Options">
+        <button type="button" class="tab is-active" data-tab="settings">Settings</button>
+        <button type="button" class="tab" data-tab="sites">Site Preferences</button>
+        <button type="button" class="tab" data-tab="help">Help</button>
+      </nav>
+      <section class="sidebar-footer card">
         <h2>Keyboard shortcut</h2>
-        <p class="hint">
-          Toggle dark mode on the current tab with <kbd>Alt</kbd> + <kbd>Shift</kbd> +
-          <kbd>D</kbd>. Change it in Chrome at
-          <span class="mono">chrome://extensions/shortcuts</span>.
+        <p>
+          Toggle dark mode with<br>
+          <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>
         </p>
+        <p class="hint">Change it at <span class="mono">chrome://extensions/shortcuts</span></p>
+      </section>
+    </aside>
+
+    <main>
+      <section id="panel-settings" class="panel is-active">
+        <header class="header">
+          <h1>Settings</h1>
+          <p>Global defaults and controls</p>
+        </header>
+
+        <section class="card">
+          <h2>Global defaults</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Enable Darkside</strong>
+              <small>Master switch for every site</small>
+            </span>
+            <input id="enabled" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-row">
+            <span>
+              <strong>Dark Mode</strong>
+              <small>Default invert for sites without an override</small>
+            </span>
+            <input id="darkMode" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-row">
+            <span>
+              <strong>Eye care</strong>
+              <small>Default brightness, contrast, warmth, dim, and presets</small>
+            </span>
+            <input id="tuneEnabled" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+
+          <div class="sliders">
+            <label>
+              <span>Brightness <b id="brightness-val">100%</b></span>
+              <input id="brightness" type="range" min="50" max="150" value="100" />
+            </label>
+            <label>
+              <span>Contrast <b id="contrast-val">100%</b></span>
+              <input id="contrast" type="range" min="50" max="150" value="100" />
+            </label>
+            <label>
+              <span>Warmth <b id="warmth-val">20</b></span>
+              <input id="warmth" type="range" min="0" max="80" value="20" />
+            </label>
+            <label>
+              <span>Dim <b id="dim-val">0</b></span>
+              <input id="dim" type="range" min="0" max="70" value="0" />
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Auto night</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Enable after hours</strong>
+              <small>Turns on dark mode and extra warmth in this window</small>
+            </span>
+            <input id="autoNight" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <div class="times">
+            <label>
+              From
+              <input id="autoNightStart" type="time" />
+            </label>
+            <label>
+              To
+              <input id="autoNightEnd" type="time" />
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section id="panel-sites" class="panel" hidden>
+        <header class="header">
+          <h1>Site Preferences</h1>
+          <p>Per-site brightness, contrast, and on/off settings</p>
+        </header>
+
+        <section class="card">
+          <h2>Site settings</h2>
+          <input id="search" class="search" type="search" placeholder="Search sites" />
+          <ul id="site-list" class="site-list"></ul>
+          <p id="empty" class="empty">
+            No per-site settings yet. Change sliders or presets on a page to save them for that site.
+          </p>
+        </section>
+      </section>
+
+      <section id="panel-help" class="panel" hidden>
+        <header class="header">
+          <h1>Help</h1>
+          <p>Source, support, and the people behind Darkside</p>
+        </header>
+
+        <section class="card">
+          <h2>Project</h2>
+          <a class="link-row" href="https://github.com/dmendoza05/darkside" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>GitHub repository</strong>
+              <small>Source code, issues, and local install instructions</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+          <p class="link-row is-wip">
+            <span>
+              <strong>Chrome Web Store</strong>
+              <small>Official listing — coming soon</small>
+            </span>
+            <span class="wip">WIP</span>
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Say hi or follow me</h2>
+          <a class="link-row" href="https://www.linkedin.com/in/dmendoza05/" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>LinkedIn</strong>
+              <small>linkedin.com/in/dmendoza05</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+          <a class="link-row" href="https://github.com/dmendoza05" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>GitHub</strong>
+              <small>github.com/dmendoza05</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+        </section>
+
+        <section class="card">
+          <h2>Support</h2>
+          <p class="link-row is-wip">
+            <span>
+              <strong>Buy Me a Coffee</strong>
+              <small>Tip jar if Darkside helps your eyes — coming soon</small>
+            </span>
+            <span class="wip">WIP</span>
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>License</h2>
+          <p class="hint">
+            Darkside is released under the <strong>MIT License</strong>. Created with the help of Cursor.
+          </p>
+        </section>
       </section>
     </main>
+    </div>
 
     <script src="../shared/defaults.js"></script>
     <script src="options.js"></script>
