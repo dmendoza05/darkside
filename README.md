@@ -44,3 +44,7 @@ After you change the code, click **Reload** on the Darkside card in `chrome://ex
 Keyboard shortcut: `Alt` + `Shift` + `D` toggles dark mode on the current tab. Change it at `chrome://extensions/shortcuts`.
 
 A few canvas-heavy apps or unusual CSS pages may look off. Turn the site off in the popup, or use **Reset this site**.
+
+## License
+
+MIT. See [LICENSE](LICENSE).

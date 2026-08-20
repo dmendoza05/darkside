@@ -97,7 +97,8 @@ function nextPayload(partial = {}) {
   const next = darksideNormalize(stored);
 
   if (restricted || !hostname) {
-    return { ...next, ...tune };
+    const { enabled: _ignored, ...globalTune } = tune;
+    return { ...next, ...globalTune };
   }
 
   const existing = next.siteOverrides[hostname] || {};
