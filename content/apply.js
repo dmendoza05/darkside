@@ -192,9 +192,13 @@
   ]);
 
   let bgObserver = null;
+  let bgIdleHandle = 0;
   let bgRaf = 0;
   let bgRescanAll = false;
-  const bgPending = new Set();
+  let bgItems = [];
+  let bgCursor = 0;
+  const bgPendingTrees = new Set();
+  const bgPendingSelf = new Set();
 
   function hasUrlImage(value) {
     return Boolean(value) && /url\s*\(/i.test(value);
@@ -231,11 +235,29 @@
     return hasScriptBackgroundImage(el) || hasCssBackgroundImage(el);
   }
 
+  function textLenCapped(el, max) {
+    try {
+      const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+      let n = 0;
+      let node;
+      while ((node = walker.nextNode())) {
+        const value = node.nodeValue;
+        if (!value) continue;
+        n += value.replace(/\s+/g, "").length;
+        if (n > max) return n;
+      }
+      return n;
+    } catch {
+      return max + 1;
+    }
+  }
+
   function shouldUninvertBackground(el) {
-    if (!elementHasBackgroundImage(el)) return false;
+    if (!(el instanceof Element)) return false;
+    if (SKIP_BG_TAGS.has(el.tagName)) return false;
     if (el.parentElement?.closest(`[${BG_ATTR}]`)) return false;
-    const text = (el.textContent || "").replace(/\s+/g, "");
-    if (text.length > 24) return false;
+    if (!elementHasBackgroundImage(el)) return false;
+    if (textLenCapped(el, 24) > 24) return false;
     try {
       const rect = el.getBoundingClientRect();
       if (rect.width > 0 && rect.height > 0 && rect.width < 40 && rect.height < 40) {
@@ -262,33 +284,92 @@
 
   function inspectBgTree(root) {
     if (!(root instanceof Element)) return;
-    inspectBg(root);
-    const nodes = root.querySelectorAll("*");
-    for (let i = 0; i < nodes.length; i += 1) inspectBg(nodes[i]);
+    bgPendingTrees.add(root);
+    scheduleBgPump();
   }
 
   function clearBgMarks() {
     document.querySelectorAll(`[${BG_ATTR}]`).forEach((el) => el.removeAttribute(BG_ATTR));
   }
 
-  function flushBgWork() {
-    bgRaf = 0;
-    if (bgRescanAll) {
-      bgRescanAll = false;
-      bgPending.clear();
-      if (document.body) inspectBgTree(document.body);
-      return;
+  function cancelBgWork() {
+    if (bgIdleHandle && typeof cancelIdleCallback === "function") {
+      cancelIdleCallback(bgIdleHandle);
     }
-    bgPending.forEach((el) => {
-      if (el.isConnected) inspectBgTree(el);
-    });
-    bgPending.clear();
+    bgIdleHandle = 0;
+    if (bgRaf) {
+      cancelAnimationFrame(bgRaf);
+      bgRaf = 0;
+    }
+  }
+
+  function collectTree(root) {
+    if (!(root instanceof Element)) return;
+    bgItems.push(root);
+    const nodes = root.querySelectorAll("*");
+    for (let i = 0; i < nodes.length; i += 1) bgItems.push(nodes[i]);
+  }
+
+  function scheduleBgPump() {
+    if (bgIdleHandle || bgRaf) return;
+    const pump = (deadline) => {
+      bgIdleHandle = 0;
+      bgRaf = 0;
+
+      if (bgRescanAll) {
+        bgRescanAll = false;
+        bgPendingTrees.clear();
+        bgPendingSelf.clear();
+        bgItems = [];
+        bgCursor = 0;
+        if (document.body) collectTree(document.body);
+      } else {
+        if (bgPendingTrees.size) {
+          bgPendingTrees.forEach((el) => {
+            if (el.isConnected) collectTree(el);
+          });
+          bgPendingTrees.clear();
+        }
+        if (bgPendingSelf.size) {
+          bgPendingSelf.forEach((el) => {
+            if (el.isConnected) bgItems.push(el);
+          });
+          bgPendingSelf.clear();
+        }
+      }
+
+      const hasBudget = () => !deadline || deadline.timeRemaining() > 3;
+      let n = 0;
+      while (bgCursor < bgItems.length && (hasBudget() || n < 40)) {
+        inspectBg(bgItems[bgCursor]);
+        bgCursor += 1;
+        n += 1;
+      }
+      if (bgCursor >= bgItems.length) {
+        bgItems = [];
+        bgCursor = 0;
+      }
+      if (bgCursor < bgItems.length || bgRescanAll || bgPendingTrees.size || bgPendingSelf.size) {
+        scheduleBgPump();
+      }
+    };
+
+    if (typeof requestIdleCallback === "function") {
+      bgIdleHandle = requestIdleCallback(pump, { timeout: 180 });
+    } else {
+      bgRaf = requestAnimationFrame(() => pump(null));
+    }
   }
 
   function queueBgWork(el, rescanAll) {
     if (rescanAll) bgRescanAll = true;
-    else if (el instanceof Element) bgPending.add(el);
-    if (!bgRaf) bgRaf = requestAnimationFrame(flushBgWork);
+    else if (el instanceof Element) bgPendingTrees.add(el);
+    scheduleBgPump();
+  }
+
+  function queueBgSelf(el) {
+    if (el instanceof Element) bgPendingSelf.add(el);
+    scheduleBgPump();
   }
 
   function startBgObserver() {
@@ -296,7 +377,9 @@
     bgObserver = new MutationObserver((mutations) => {
       for (const mutation of mutations) {
         if (mutation.type === "attributes") {
-          queueBgWork(mutation.target, false);
+          const target = mutation.target;
+          if (target === html || target === document.body) queueBgWork(null, true);
+          else queueBgSelf(target);
           continue;
         }
         for (const node of mutation.addedNodes) {
@@ -326,11 +409,11 @@
       bgObserver.disconnect();
       bgObserver = null;
     }
-    if (bgRaf) {
-      cancelAnimationFrame(bgRaf);
-      bgRaf = 0;
-    }
-    bgPending.clear();
+    cancelBgWork();
+    bgPendingTrees.clear();
+    bgPendingSelf.clear();
+    bgItems = [];
+    bgCursor = 0;
     bgRescanAll = false;
     clearBgMarks();
   }
@@ -350,31 +433,50 @@
     document.addEventListener("DOMContentLoaded", callback, { once: true });
   }
 
+  let nightTimer = 0;
+  function syncNightTimer(stored) {
+    const want = Boolean(stored && stored.autoNight);
+    if (want && !nightTimer) {
+      nightTimer = setInterval(() => apply(lastSettings), 60000);
+    } else if (!want && nightTimer) {
+      clearInterval(nightTimer);
+      nightTimer = 0;
+    }
+  }
+
   skippedAlreadyDark = markedDark();
   apply(DARKSIDE_DEFAULTS);
 
   chrome.storage.local.get(null, (stored) => {
     apply(stored);
+    syncNightTimer(lastSettings);
     whenReady(() => {
       detectAlreadyDark();
       setTimeout(detectAlreadyDark, 350);
     });
   });
 
-  chrome.storage.onChanged.addListener((_changes, area) => {
+  chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
-    chrome.storage.local.get(null, (stored) => {
-      apply(stored);
-      if (userForcedInvert === null) detectAlreadyDark();
-    });
+    apply(darksideMergeChanges(lastSettings, changes));
+    syncNightTimer(lastSettings);
+    if (userForcedInvert === null) detectAlreadyDark();
   });
 
-  chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-    if (!message) return;
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (!message || typeof message !== "object") return;
+    if (sender.id && sender.id !== chrome.runtime.id) return;
     if (message.type === "darkside-user-invert") {
       userForcedInvert = Boolean(message.invert);
       skippedAlreadyDark = false;
       apply(lastSettings);
+      return;
+    }
+    if (message.type === "darkside-preview") {
+      if (shouldSkipPage()) return;
+      if (message.effective && typeof message.effective === "object") {
+        paint(message.effective);
+      }
       return;
     }
     if (message.type === "darkside-apply") {
@@ -389,8 +491,4 @@
       });
     }
   });
-
-  setInterval(() => {
-    apply(lastSettings);
-  }, 60000);
 })();

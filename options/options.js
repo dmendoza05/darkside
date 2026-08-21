@@ -10,6 +10,17 @@ const emptyEl = document.getElementById("empty");
 
 let stored = darksideNormalize({});
 let saving = false;
+let persistTimer = 0;
+
+function debouncePersist(fn, ms) {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(fn, ms);
+}
+
+function cancelDebouncedPersist() {
+  clearTimeout(persistTimer);
+  persistTimer = 0;
+}
 
 function showTab(name) {
   const allowed = new Set(["settings", "sites", "help"]);
@@ -123,9 +134,14 @@ function renderSites() {
 }
 
 async function persist(next) {
+  cancelDebouncedPersist();
   saving = true;
-  stored = darksideNormalize(next);
-  await chrome.storage.local.set(stored);
+  const normalized = darksideNormalize(next);
+  const patch = darksideStoragePatch(stored, normalized);
+  stored = normalized;
+  if (Object.keys(patch).length) {
+    await chrome.storage.local.set(patch);
+  }
   saving = false;
 }
 
@@ -149,21 +165,24 @@ async function saveGlobals() {
 });
 
 ["brightness", "contrast", "warmth", "dim"].forEach((id) => {
-  document.getElementById(id).addEventListener("input", () => {
-    setSlider(id, Number(document.getElementById(id).value));
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
+    setSlider(id, Number(el.value));
+    debouncePersist(saveGlobals, 200);
+  });
+  el.addEventListener("change", () => {
+    cancelDebouncedPersist();
     saveGlobals();
   });
 });
 
 searchEl.addEventListener("input", renderSites);
 
-chrome.storage.onChanged.addListener((_changes, area) => {
+chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || saving) return;
-  chrome.storage.local.get(null, (value) => {
-    stored = darksideNormalize(value);
-    paintGlobals();
-    renderSites();
-  });
+  stored = darksideNormalize(darksideMergeChanges(stored, changes));
+  paintGlobals();
+  renderSites();
 });
 
 (async function init() {

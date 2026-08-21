@@ -21,31 +21,88 @@ const DARKSIDE_PRESETS = {
 };
 
 const DARKSIDE_TUNE_KEYS = ["darkMode", "tuneEnabled", "brightness", "contrast", "warmth", "dim"];
+const DARKSIDE_HOST_BLOCKLIST = new Set(["__proto__", "constructor", "prototype"]);
 
 function darksideClamp(value, min, max, fallback) {
+  if (value === undefined || value === null || value === "") return fallback;
   const n = Number(value);
-  if (Number.isNaN(n)) return fallback;
+  if (!Number.isFinite(n)) return fallback;
   return Math.min(max, Math.max(min, n));
+}
+
+function darksideNormalizeTime(value, fallback) {
+  const match = String(value || "").match(/^(\d{1,2}):(\d{2})(?::\d{2})?$/);
+  if (!match) return fallback;
+  const hours = Number(match[1]);
+  const minutes = Number(match[2]);
+  if (hours > 23 || minutes > 59) return fallback;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+}
+
+function darksideIsSafeHostKey(host) {
+  if (typeof host !== "string" || !host || host.length > 253) return false;
+  if (DARKSIDE_HOST_BLOCKLIST.has(host)) return false;
+  if (/[\s/\\]/.test(host)) return false;
+  return true;
+}
+
+function darksideNormalizeOverride(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out = {};
+  if ("enabled" in raw) out.enabled = Boolean(raw.enabled);
+  if ("darkMode" in raw) out.darkMode = Boolean(raw.darkMode);
+  if ("tuneEnabled" in raw) out.tuneEnabled = raw.tuneEnabled !== false;
+  if ("brightness" in raw) out.brightness = darksideClamp(raw.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness);
+  if ("contrast" in raw) out.contrast = darksideClamp(raw.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast);
+  if ("warmth" in raw) out.warmth = darksideClamp(raw.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth);
+  if ("dim" in raw) out.dim = darksideClamp(raw.dim, 0, 70, DARKSIDE_DEFAULTS.dim);
+  return out;
+}
+
+function darksideNormalizeOverrides(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
+  const out = Object.create(null);
+  for (const host of Object.keys(raw)) {
+    if (!darksideIsSafeHostKey(host)) continue;
+    out[host] = darksideNormalizeOverride(raw[host]);
+  }
+  return out;
 }
 
 function darksideNormalize(stored) {
   const raw = stored && typeof stored === "object" ? stored : {};
-  const siteOverrides =
-    raw.siteOverrides && typeof raw.siteOverrides === "object" && !Array.isArray(raw.siteOverrides)
-      ? raw.siteOverrides
-      : {};
-  const merged = { ...DARKSIDE_DEFAULTS, ...raw, siteOverrides };
-  merged.enabled = Boolean(merged.enabled);
-  merged.darkMode = Boolean(merged.darkMode);
-  merged.tuneEnabled = merged.tuneEnabled !== false;
-  merged.autoNight = Boolean(merged.autoNight);
-  merged.brightness = darksideClamp(merged.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness);
-  merged.contrast = darksideClamp(merged.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast);
-  merged.warmth = darksideClamp(merged.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth);
-  merged.dim = darksideClamp(merged.dim, 0, 70, DARKSIDE_DEFAULTS.dim);
-  merged.autoNightStart = merged.autoNightStart || DARKSIDE_DEFAULTS.autoNightStart;
-  merged.autoNightEnd = merged.autoNightEnd || DARKSIDE_DEFAULTS.autoNightEnd;
-  return merged;
+  return {
+    enabled: raw.enabled !== undefined ? Boolean(raw.enabled) : DARKSIDE_DEFAULTS.enabled,
+    darkMode: raw.darkMode !== undefined ? Boolean(raw.darkMode) : DARKSIDE_DEFAULTS.darkMode,
+    tuneEnabled: raw.tuneEnabled !== false,
+    brightness: darksideClamp(raw.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness),
+    contrast: darksideClamp(raw.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast),
+    warmth: darksideClamp(raw.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth),
+    dim: darksideClamp(raw.dim, 0, 70, DARKSIDE_DEFAULTS.dim),
+    autoNight: Boolean(raw.autoNight),
+    autoNightStart: darksideNormalizeTime(raw.autoNightStart, DARKSIDE_DEFAULTS.autoNightStart),
+    autoNightEnd: darksideNormalizeTime(raw.autoNightEnd, DARKSIDE_DEFAULTS.autoNightEnd),
+    siteOverrides: darksideNormalizeOverrides(raw.siteOverrides),
+  };
+}
+
+function darksideStoragePatch(prev, next) {
+  const patch = {};
+  for (const key of Object.keys(DARKSIDE_DEFAULTS)) {
+    if (JSON.stringify(prev?.[key]) !== JSON.stringify(next[key])) {
+      patch[key] = next[key];
+    }
+  }
+  return patch;
+}
+
+function darksideMergeChanges(current, changes) {
+  const next = { ...current };
+  for (const key of Object.keys(changes || {})) {
+    if (changes[key].newValue === undefined) delete next[key];
+    else next[key] = changes[key].newValue;
+  }
+  return next;
 }
 
 function darksideMinutes(hhmm) {
@@ -104,12 +161,14 @@ function darksideCssVars(effective) {
   const dimVal = tuneOn ? Number(effective.dim) : 0;
   const dimFactor = 1 - (dimVal / 100) * 0.85;
   const brightness = (brightnessVal / 100) * dimFactor;
+  const contrast = contrastVal / 100;
+  const sepia = (warmthVal / 100) * 0.65;
   return {
     invert,
     hue: invert ? "180deg" : "0deg",
-    brightness: brightness.toFixed(3),
-    contrast: (contrastVal / 100).toFixed(3),
-    sepia: ((warmthVal / 100) * 0.65).toFixed(3),
+    brightness: (Number.isFinite(brightness) ? brightness : 1).toFixed(3),
+    contrast: (Number.isFinite(contrast) ? contrast : 1).toFixed(3),
+    sepia: (Number.isFinite(sepia) ? sepia : 0).toFixed(3),
   };
 }
 

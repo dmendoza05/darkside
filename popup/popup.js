@@ -15,6 +15,17 @@ let hostname = "";
 let restricted = true;
 let stored = darksideNormalize({});
 let saving = false;
+let persistTimer = 0;
+
+function debouncePersist(fn, ms) {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(fn, ms);
+}
+
+function cancelDebouncedPersist() {
+  clearTimeout(persistTimer);
+  persistTimer = 0;
+}
 
 function sliderValue(id) {
   const el = document.getElementById(id);
@@ -149,11 +160,30 @@ async function tellTabInvert(invert) {
 }
 
 async function persist(next) {
+  cancelDebouncedPersist();
   saving = true;
-  stored = darksideNormalize(next);
-  await chrome.storage.local.set(stored);
+  const normalized = darksideNormalize(next);
+  const patch = darksideStoragePatch(stored, normalized);
+  stored = normalized;
+  if (Object.keys(patch).length) {
+    await chrome.storage.local.set(patch);
+  }
   saving = false;
   setTimeout(refreshSkipHint, 120);
+}
+
+async function previewTab(next) {
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    if (!tab?.id || restricted) return;
+    await chrome.tabs.sendMessage(
+      tab.id,
+      { type: "darkside-preview", effective: darksideEffective(next, hostname) },
+      { frameId: 0 }
+    );
+  } catch {
+    /* page has no content script */
+  }
 }
 
 async function load() {
@@ -198,11 +228,19 @@ tuneEnabledEl.addEventListener("change", async () => {
 });
 
 sliderIds.forEach((id) => {
-  document.getElementById(id).addEventListener("input", async () => {
+  const el = document.getElementById(id);
+  el.addEventListener("input", () => {
     if (restricted) return;
     setSlider(id, sliderValue(id));
     highlightPreset(currentSliders());
-    await persist(nextPayload());
+    const next = nextPayload();
+    previewTab(next);
+    debouncePersist(() => persist(nextPayload()), 200);
+  });
+  el.addEventListener("change", () => {
+    if (restricted) return;
+    cancelDebouncedPersist();
+    persist(nextPayload());
   });
 });
 
@@ -249,12 +287,10 @@ document.getElementById("open-options").addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
-chrome.storage.onChanged.addListener((_changes, area) => {
+chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || saving || restricted) return;
-  chrome.storage.local.get(null, (value) => {
-    stored = darksideNormalize(value);
-    paintForm(darksideEffective(stored, hostname));
-  });
+  stored = darksideNormalize(darksideMergeChanges(stored, changes));
+  paintForm(darksideEffective(stored, hostname));
 });
 
 load();
