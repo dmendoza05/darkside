@@ -116,7 +116,23 @@
                     <input id="dim" type="range" min="0" max="70" value="0" />
                   </label>
                 </div>
-                <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+                <div class="slider-actions">
+                  <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+                  <button type="button" id="create-preset" class="text-btn" aria-expanded="false" aria-controls="create-preset-form">
+                    Create Preset
+                  </button>
+                </div>
+                <div id="create-preset-form" class="create-preset-form" hidden>
+                  <input
+                    id="create-preset-name"
+                    type="text"
+                    maxlength="24"
+                    placeholder="Preset name"
+                    autocomplete="off"
+                    aria-label="Preset name"
+                  />
+                  <button type="button" id="save-preset">Save</button>
+                </div>
               </div>
             </section>
 
@@ -136,13 +152,10 @@
                 </svg>
               </button>
               <div id="presets-body" class="tune-section-body">
-                <div class="presets" role="group" aria-label="Presets">
-                  <button type="button" data-preset="soft">Soft</button>
-                  <button type="button" data-preset="night">Night</button>
-                  <button type="button" data-preset="sunset">Sunset</button>
-                  <button type="button" data-preset="contrast">Contrast</button>
-                  <button type="button" data-preset="reading">Reading</button>
-                </div>
+                <div class="presets" role="group" aria-label="Presets"></div>
+                <p id="presets-empty" class="presets-empty" hidden>
+                  No presets to show. Create one, or turn on defaults in Custom Presets.
+                </p>
               </div>
             </section>
           </div>

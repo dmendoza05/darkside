@@ -370,6 +370,63 @@ input:focus-visible + .switch {
   border-color: var(--gold);
 }
 
+.presets-empty {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.slider-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.create-preset-form {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.create-preset-form[hidden] {
+  display: none;
+}
+
+#create-preset-name {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 8px;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  user-select: text;
+  -webkit-user-select: text;
+}
+
+#create-preset-name:focus {
+  outline: none;
+  border-color: var(--gold-muted);
+}
+
+#save-preset {
+  padding: 6px 10px;
+  color: #111;
+  background: var(--gold);
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+#save-preset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
 .sliders {
   display: flex;
   flex-direction: column;
@@ -419,5 +476,10 @@ input[type="range"]::-webkit-slider-thumb {
 
 .text-btn:hover {
   color: var(--gold);
+}
+
+.text-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 

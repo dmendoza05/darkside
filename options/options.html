@@ -22,6 +22,7 @@
       <nav class="tabs" aria-label="Options">
         <button type="button" class="tab is-active" data-tab="settings">Settings</button>
         <button type="button" class="tab" data-tab="sites">Site Preferences</button>
+        <button type="button" class="tab" data-tab="presets">Custom Presets</button>
         <button type="button" class="tab" data-tab="help">Help</button>
       </nav>
       <section class="sidebar-footer card">
@@ -127,6 +128,45 @@
         </section>
       </section>
 
+      <section id="panel-presets" class="panel" hidden>
+        <header class="header">
+          <h1>Custom Presets</h1>
+          <p>Personalize the presets that show up in the popup</p>
+        </header>
+
+        <section class="card">
+          <h2>Preset Preference</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Show default presets</strong>
+              <small>Soft, Night, Sunset, Contrast, and Reading in the popup</small>
+            </span>
+            <input id="showDefaultPresets" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Your presets</h2>
+            <button
+              type="button"
+              id="add-preset"
+              class="add-btn"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="new-preset-dialog"
+            >
+              Add preset
+            </button>
+          </div>
+          <ul id="preset-list" class="preset-list"></ul>
+          <p id="preset-empty" class="empty">
+            No custom presets yet. Add one, or create it from the popup.
+          </p>
+        </section>
+      </section>
+
       <section id="panel-help" class="panel" hidden>
         <header class="header">
           <h1>Help</h1>
@@ -194,6 +234,49 @@
       </section>
     </main>
     </div>
+
+    <dialog id="new-preset-dialog" class="preset-dialog" aria-labelledby="new-preset-title">
+      <div class="preset-dialog-card">
+        <div class="preset-dialog-head">
+          <h3 id="new-preset-title">New preset</h3>
+          <button type="button" id="close-new-preset" class="dialog-close" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <label class="dialog-field">
+          <span>Name</span>
+          <input
+            id="new-preset-name"
+            type="text"
+            maxlength="24"
+            placeholder="Preset name"
+            autocomplete="off"
+          />
+        </label>
+        <div class="sliders">
+          <label>
+            <span>Brightness <b id="new-brightness-val">100%</b></span>
+            <input id="new-brightness" type="range" min="25" max="150" value="100" />
+          </label>
+          <label>
+            <span>Contrast <b id="new-contrast-val">100%</b></span>
+            <input id="new-contrast" type="range" min="50" max="150" value="100" />
+          </label>
+          <label>
+            <span>Warmth <b id="new-warmth-val">20</b></span>
+            <input id="new-warmth" type="range" min="0" max="80" value="20" />
+          </label>
+          <label>
+            <span>Dim <b id="new-dim-val">0</b></span>
+            <input id="new-dim" type="range" min="0" max="70" value="0" />
+          </label>
+        </div>
+        <div class="preset-dialog-actions">
+          <button type="button" id="cancel-new-preset" class="dialog-cancel">Cancel</button>
+          <button type="button" id="save-new-preset" class="add-btn">Save</button>
+        </div>
+      </div>
+    </dialog>
 
     <script src="../shared/defaults.js"></script>
     <script src="options.js"></script>

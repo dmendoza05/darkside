@@ -17,6 +17,12 @@ const alreadyDarkDetailEl = document.getElementById("already-dark-detail");
 const alreadyDarkReasonEl = document.getElementById("already-dark-reason");
 
 const sliderIds = ["brightness", "contrast", "warmth", "dim"];
+const presetsEl = document.querySelector(".presets");
+const presetsEmptyEl = document.getElementById("presets-empty");
+const createPresetEl = document.getElementById("create-preset");
+const createPresetFormEl = document.getElementById("create-preset-form");
+const createPresetNameEl = document.getElementById("create-preset-name");
+const savePresetEl = document.getElementById("save-preset");
 
 let hostname = "";
 let restricted = true;
@@ -67,9 +73,38 @@ function setInteractive(on) {
     document.getElementById(id).disabled = !on;
   });
   document.getElementById("reset-sliders").disabled = !on;
+  setCreatePresetInteractive(on);
   document.querySelectorAll(".presets button").forEach((btn) => {
     btn.disabled = !on;
   });
+}
+
+function setCreatePresetInteractive(on) {
+  const atLimit = atCustomPresetLimit();
+  if (createPresetEl) createPresetEl.disabled = !on || atLimit;
+  if (createPresetNameEl) createPresetNameEl.disabled = !on || atLimit;
+  if (savePresetEl) savePresetEl.disabled = !on || atLimit;
+  if ((!on || atLimit) && createPresetFormEl && !createPresetFormEl.hidden) {
+    setCreatePresetFormOpen(false);
+  }
+}
+
+function setCreatePresetFormOpen(open) {
+  if (!createPresetFormEl || !createPresetEl) return;
+  createPresetFormEl.hidden = !open;
+  createPresetEl.setAttribute("aria-expanded", String(open));
+  if (open && createPresetNameEl) {
+    if (!createPresetNameEl.value.trim()) {
+      createPresetNameEl.value = `Custom ${(stored.customPresets || []).length + 1}`;
+    }
+    createPresetNameEl.focus();
+    createPresetNameEl.select();
+  }
+  fitPopup();
+}
+
+function atCustomPresetLimit() {
+  return (stored.customPresets || []).length >= DARKSIDE_MAX_CUSTOM_PRESETS;
 }
 
 function fitPopup() {
@@ -102,21 +137,53 @@ function paintForm(effective) {
   setSlider("contrast", effective.contrast);
   setSlider("warmth", effective.warmth);
   setSlider("dim", effective.dim);
+  renderPresets();
   setTunePanel();
   highlightPreset(effective);
 }
 
+function renderPresets() {
+  if (!presetsEl) return;
+  const listed = darksideListedPresets(stored);
+  const interactive = !restricted;
+  presetsEl.replaceChildren();
+  listed.forEach((preset) => {
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.dataset.preset = preset.id;
+    btn.textContent = preset.name;
+    btn.disabled = !interactive;
+    btn.addEventListener("click", () => applyPreset(preset.id));
+    presetsEl.appendChild(btn);
+  });
+  if (presetsEmptyEl) presetsEmptyEl.hidden = listed.length > 0;
+  setCreatePresetInteractive(interactive);
+}
+
 function highlightPreset(tune) {
   document.querySelectorAll(".presets button").forEach((btn) => {
-    const preset = DARKSIDE_PRESETS[btn.dataset.preset];
+    const preset = darksidePresetById(stored, btn.dataset.preset);
+    const values = darksidePresetTune(preset);
     const match =
-      preset &&
-      Number(preset.brightness) === Number(tune.brightness) &&
-      Number(preset.contrast) === Number(tune.contrast) &&
-      Number(preset.warmth) === Number(tune.warmth) &&
-      Number(preset.dim) === Number(tune.dim);
+      values &&
+      Number(values.brightness) === Number(tune.brightness) &&
+      Number(values.contrast) === Number(tune.contrast) &&
+      Number(values.warmth) === Number(tune.warmth) &&
+      Number(values.dim) === Number(tune.dim);
     btn.classList.toggle("active", Boolean(match));
   });
+}
+
+async function applyPreset(id) {
+  if (restricted) return;
+  const values = darksidePresetTune(darksidePresetById(stored, id));
+  if (!values) return;
+  setSlider("brightness", values.brightness);
+  setSlider("contrast", values.contrast);
+  setSlider("warmth", values.warmth);
+  setSlider("dim", values.dim);
+  highlightPreset(values);
+  await persist(nextPayload(values));
 }
 
 function nextPayload(partial = {}) {
@@ -302,18 +369,39 @@ sliderIds.forEach((id) => {
   });
 });
 
-document.querySelectorAll(".presets button").forEach((btn) => {
-  btn.addEventListener("click", async () => {
-    if (restricted) return;
-    const preset = DARKSIDE_PRESETS[btn.dataset.preset];
-    if (!preset) return;
-    setSlider("brightness", preset.brightness);
-    setSlider("contrast", preset.contrast);
-    setSlider("warmth", preset.warmth);
-    setSlider("dim", preset.dim);
-    highlightPreset(preset);
-    await persist(nextPayload(preset));
-  });
+createPresetEl?.addEventListener("click", () => {
+  if (restricted || atCustomPresetLimit()) return;
+  setCreatePresetFormOpen(createPresetFormEl.hidden);
+});
+
+async function saveCreatedPreset() {
+  if (restricted || atCustomPresetLimit()) return;
+  const name = (createPresetNameEl?.value || "").trim().slice(0, 24);
+  if (!name) {
+    createPresetNameEl?.focus();
+    return;
+  }
+  const next = darksideNormalize(stored);
+  next.customPresets = [
+    ...next.customPresets,
+    { id: darksideNewPresetId(next.customPresets), name, ...currentSliders() },
+  ];
+  if (createPresetNameEl) createPresetNameEl.value = "";
+  setCreatePresetFormOpen(false);
+  await persist(next);
+  renderPresets();
+  highlightPreset(currentSliders());
+  fitPopup();
+}
+
+savePresetEl?.addEventListener("click", () => {
+  saveCreatedPreset();
+});
+
+createPresetNameEl?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  saveCreatedPreset();
 });
 
 document.getElementById("reset-sliders").addEventListener("click", async () => {

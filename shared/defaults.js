@@ -10,6 +10,8 @@ const DARKSIDE_DEFAULTS = {
   autoNightStart: "20:00",
   autoNightEnd: "07:00",
   siteOverrides: {},
+  showDefaultPresets: true,
+  customPresets: [],
 };
 
 const DARKSIDE_PRESETS = {
@@ -20,7 +22,14 @@ const DARKSIDE_PRESETS = {
   reading: { brightness: 92, contrast: 110, warmth: 35, dim: 8 },
 };
 
-const DARKSIDE_TUNE_KEYS = ["darkMode", "tuneEnabled", "brightness", "contrast", "warmth", "dim"];
+const DARKSIDE_PRESET_LABELS = {
+  soft: "Soft",
+  night: "Night",
+  sunset: "Sunset",
+  contrast: "Contrast",
+  reading: "Reading",
+};
+const DARKSIDE_MAX_CUSTOM_PRESETS = 12;
 const DARKSIDE_HOST_BLOCKLIST = new Set(["__proto__", "constructor", "prototype"]);
 
 function darksideClamp(value, min, max, fallback) {
@@ -69,6 +78,84 @@ function darksideNormalizeOverrides(raw) {
   return out;
 }
 
+function darksideIsSafePresetId(id) {
+  if (typeof id !== "string" || !id || id.length > 32) return false;
+  if (Object.prototype.hasOwnProperty.call(DARKSIDE_PRESETS, id)) return false;
+  return /^c[a-z0-9]+$/i.test(id);
+}
+
+function darksideNewPresetId(existing) {
+  const used = new Set((existing || []).map((preset) => preset && preset.id).filter(Boolean));
+  let id = "";
+  do {
+    id = `c${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+  } while (used.has(id));
+  return id;
+}
+
+function darksideNormalizeCustomPreset(raw) {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  if (!darksideIsSafePresetId(raw.id)) return null;
+  const name = String(raw.name || "Custom")
+    .trim()
+    .slice(0, 24) || "Custom";
+  return {
+    id: raw.id,
+    name,
+    brightness: darksideClamp(raw.brightness, 25, 150, DARKSIDE_DEFAULTS.brightness),
+    contrast: darksideClamp(raw.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast),
+    warmth: darksideClamp(raw.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth),
+    dim: darksideClamp(raw.dim, 0, 70, DARKSIDE_DEFAULTS.dim),
+  };
+}
+
+function darksideNormalizeCustomPresets(raw) {
+  if (!Array.isArray(raw)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const item of raw) {
+    const preset = darksideNormalizeCustomPreset(item);
+    if (!preset || seen.has(preset.id)) continue;
+    seen.add(preset.id);
+    out.push(preset);
+    if (out.length >= DARKSIDE_MAX_CUSTOM_PRESETS) break;
+  }
+  return out;
+}
+
+function darksidePresetTune(preset) {
+  if (!preset || typeof preset !== "object") return null;
+  return {
+    brightness: Number(preset.brightness),
+    contrast: Number(preset.contrast),
+    warmth: Number(preset.warmth),
+    dim: Number(preset.dim),
+  };
+}
+
+function darksideListedPresets(stored) {
+  const settings = stored && typeof stored === "object" ? stored : {};
+  const listed = [];
+  if (settings.showDefaultPresets !== false) {
+    for (const id of Object.keys(DARKSIDE_PRESETS)) {
+      listed.push({
+        id,
+        name: DARKSIDE_PRESET_LABELS[id] || id,
+        ...DARKSIDE_PRESETS[id],
+        builtin: true,
+      });
+    }
+  }
+  for (const preset of settings.customPresets || []) {
+    listed.push({ ...preset, builtin: false });
+  }
+  return listed;
+}
+
+function darksidePresetById(stored, id) {
+  return darksideListedPresets(stored).find((preset) => preset.id === id) || null;
+}
+
 function darksideNormalize(stored) {
   const raw = stored && typeof stored === "object" ? stored : {};
   return {
@@ -83,6 +170,8 @@ function darksideNormalize(stored) {
     autoNightStart: darksideNormalizeTime(raw.autoNightStart, DARKSIDE_DEFAULTS.autoNightStart),
     autoNightEnd: darksideNormalizeTime(raw.autoNightEnd, DARKSIDE_DEFAULTS.autoNightEnd),
     siteOverrides: darksideNormalizeOverrides(raw.siteOverrides),
+    showDefaultPresets: raw.showDefaultPresets !== false,
+    customPresets: darksideNormalizeCustomPresets(raw.customPresets),
   };
 }
 
