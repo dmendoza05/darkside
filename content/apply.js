@@ -2,6 +2,7 @@
   const html = document.documentElement;
   let lastSettings = DARKSIDE_DEFAULTS;
   let skippedAlreadyDark = false;
+  let darkSkipReason = "";
   let userForcedInvert = null;
 
   function currentHost() {
@@ -20,43 +21,61 @@
     }
   }
 
-  function markedDark() {
-    const mode = (
-      html.getAttribute("data-color-mode") ||
-      html.getAttribute("data-theme") ||
-      html.getAttribute("data-bs-theme") ||
-      html.getAttribute("data-color-scheme") ||
-      ""
-    ).toLowerCase();
-
-    if (mode === "dark" || mode === "darker") return true;
-    if ((mode === "auto" || mode === "system") && darkSchemePreferred()) return true;
-    if (html.hasAttribute("dark") || html.getAttribute("theme") === "dark") return true;
-    if (
-      html.classList.contains("dark") ||
-      html.classList.contains("dark-theme") ||
-      html.classList.contains("theme-dark") ||
-      html.classList.contains("darkmode")
-    ) {
-      return true;
+  function markedDarkReason() {
+    const attrs = [
+      ["data-color-mode", html.getAttribute("data-color-mode")],
+      ["data-theme", html.getAttribute("data-theme")],
+      ["data-bs-theme", html.getAttribute("data-bs-theme")],
+      ["data-color-scheme", html.getAttribute("data-color-scheme")],
+      ["theme", html.getAttribute("theme")],
+    ];
+    for (const [name, value] of attrs) {
+      const mode = String(value || "").toLowerCase();
+      if (mode === "dark" || mode === "darker") return `${name}="${mode}"`;
+    }
+    if (html.hasAttribute("dark")) return "<html dark>";
+    for (const cls of ["dark", "dark-theme", "theme-dark", "darkmode"]) {
+      if (html.classList.contains(cls)) return `class .${cls}`;
     }
 
     const colorScheme = (html.getAttribute("color-scheme") || "").toLowerCase();
-    if (colorScheme === "dark") return true;
+    if (colorScheme === "dark") return 'color-scheme="dark"';
 
     const meta = document.querySelector('meta[name="color-scheme"]');
     const metaContent = (meta?.getAttribute("content") || "").toLowerCase();
-    if (metaContent.split(/[,\s]+/).includes("dark") && !metaContent.includes("light")) return true;
-
-    return false;
+    if (metaContent.split(/[,\s]+/).includes("dark") && !metaContent.includes("light")) {
+      return "meta color-scheme: dark";
+    }
+    return "";
   }
 
-  function darkSchemePreferred() {
-    try {
-      return Boolean(window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
-    } catch {
-      return false;
+  function alreadyDarkReason() {
+    const marked = markedDarkReason();
+    if (marked) return marked;
+
+    const weInverted = html.getAttribute("data-darkside-invert") === "1";
+    if (!weInverted) {
+      try {
+        const scheme = String(getComputedStyle(html).colorScheme || "");
+        if (/\bdark\b/i.test(scheme) && !/\blight\b/i.test(scheme)) return "color-scheme: dark";
+      } catch {
+        /* ignore */
+      }
     }
+
+    html.removeAttribute("data-darkside-fill");
+    const htmlL = luminance(getComputedStyle(html).backgroundColor);
+    const bodyL = document.body
+      ? luminance(getComputedStyle(document.body).backgroundColor)
+      : null;
+    if (bodyL != null && bodyL < 0.28) return "dark background";
+    if (htmlL != null && htmlL < 0.28) return "dark background";
+    return "";
+  }
+
+  function setDarkSkip(reason) {
+    darkSkipReason = reason || "";
+    skippedAlreadyDark = Boolean(darkSkipReason);
   }
 
   function parseColor(color) {
@@ -76,24 +95,6 @@
     const c = parseColor(color);
     if (!c || c.a < 0.15) return null;
     return (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
-  }
-
-  function originallyDark() {
-    if (markedDark()) return true;
-    try {
-      const scheme = String(getComputedStyle(html).colorScheme || "");
-      if (/\bdark\b/i.test(scheme) && !/\blight\b/i.test(scheme)) return true;
-    } catch {
-      /* ignore */
-    }
-    html.removeAttribute("data-darkside-fill");
-    const htmlL = luminance(getComputedStyle(html).backgroundColor);
-    const bodyL = document.body
-      ? luminance(getComputedStyle(document.body).backgroundColor)
-      : null;
-    if (bodyL != null && bodyL < 0.28) return true;
-    if (htmlL != null && htmlL < 0.28) return true;
-    return false;
   }
 
   function htmlNeedsFill() {
@@ -157,17 +158,17 @@
 
   function detectAlreadyDark() {
     if (userForcedInvert !== null) {
-      skippedAlreadyDark = false;
+      setDarkSkip("");
       paint(darksideEffective(lastSettings, currentHost()));
       return;
     }
     const effective = darksideEffective(lastSettings, currentHost());
     if (!effective.enabled || !effective.darkMode) {
-      skippedAlreadyDark = false;
+      setDarkSkip("");
       paint(effective);
       return;
     }
-    skippedAlreadyDark = originallyDark();
+    setDarkSkip(alreadyDarkReason());
     paint(effective);
   }
 
@@ -444,7 +445,7 @@
     }
   }
 
-  skippedAlreadyDark = markedDark();
+  setDarkSkip(markedDarkReason());
   apply(DARKSIDE_DEFAULTS);
 
   chrome.storage.local.get(null, (stored) => {
@@ -468,7 +469,7 @@
     if (sender.id && sender.id !== chrome.runtime.id) return;
     if (message.type === "darkside-user-invert") {
       userForcedInvert = Boolean(message.invert);
-      skippedAlreadyDark = false;
+      setDarkSkip("");
       apply(lastSettings);
       return;
     }
@@ -485,9 +486,11 @@
       return;
     }
     if (message.type === "darkside-status") {
+      const skipped = skippedAlreadyDark && userForcedInvert !== true;
       sendResponse({
-        skippedAlreadyDark: skippedAlreadyDark && userForcedInvert !== true,
+        skippedAlreadyDark: skipped,
         invert: html.getAttribute("data-darkside-invert") === "1",
+        reason: skipped ? darkSkipReason : "",
       });
     }
   });

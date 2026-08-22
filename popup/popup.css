@@ -66,8 +66,7 @@ h1 {
   background: var(--bg-elev);
 }
 
-.restricted,
-.hint {
+.restricted {
   margin: 0;
   padding: 10px 12px;
   color: var(--text-muted);
@@ -75,10 +74,6 @@ h1 {
   border: 1px solid var(--border);
   border-radius: 10px;
   font-size: 12px;
-}
-
-.restricted {
-  margin: 0;
 }
 
 #main.is-restricted .site-card,
@@ -93,7 +88,58 @@ h1 {
   cursor: not-allowed;
 }
 
-.hint strong {
+.dark-card {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.dark-card .dark-toggle {
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+}
+
+.already-dark-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px 9px;
+  color: var(--text-muted);
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--border);
+  font: inherit;
+  font-size: 11px;
+  line-height: 1.3;
+  text-align: left;
+  cursor: pointer;
+}
+
+.already-dark-toggle:hover {
+  color: var(--text);
+}
+
+.already-dark-toggle .chevron {
+  flex: 0 0 auto;
+  color: var(--gold-muted);
+  transition: transform 0.15s ease;
+}
+
+#already-dark.is-open .chevron {
+  transform: rotate(90deg);
+}
+
+#already-dark-detail {
+  margin: 0;
+  padding: 0 12px 10px 28px;
+  color: var(--text-muted);
+  font-size: 11px;
+  line-height: 1.35;
+}
+
+#already-dark-detail b {
   color: var(--gold);
   font-weight: 600;
 }

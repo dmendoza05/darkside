@@ -45,18 +45,33 @@
       </section>
 
       <div id="page-controls">
-        <label class="dark-toggle">
-          <span>
-            <strong>Dark Mode</strong>
-            <small>Invert the page. Photos stay true-color.</small>
-          </span>
-          <input id="darkMode" type="checkbox" />
-          <span class="switch" aria-hidden="true"></span>
-        </label>
-
-        <p id="already-dark" class="hint" hidden>
-          This site already looks dark, so invert is off. Turn on <strong>Dark Mode</strong> to invert it anyway.
-        </p>
+        <div class="dark-card">
+          <label class="dark-toggle">
+            <span>
+              <strong>Dark Mode</strong>
+              <small>Invert the page. Photos stay true-color.</small>
+            </span>
+            <input id="darkMode" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+          <div id="already-dark" hidden>
+            <button
+              type="button"
+              id="already-dark-toggle"
+              class="already-dark-toggle"
+              aria-expanded="false"
+              aria-controls="already-dark-detail"
+            >
+              <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span>Already looks dark — invert off</span>
+            </button>
+            <p id="already-dark-detail" hidden>
+              Detected <b id="already-dark-reason"></b>. Turn Dark Mode on to invert anyway.
+            </p>
+          </div>
+        </div>
 
         <label class="dark-toggle">
           <span>

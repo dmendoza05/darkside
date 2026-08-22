@@ -8,6 +8,9 @@ const mainEl = document.getElementById("main");
 const pageControlsEl = document.getElementById("page-controls");
 const tunePanelEl = document.getElementById("tune-panel");
 const alreadyDarkEl = document.getElementById("already-dark");
+const alreadyDarkToggleEl = document.getElementById("already-dark-toggle");
+const alreadyDarkDetailEl = document.getElementById("already-dark-detail");
+const alreadyDarkReasonEl = document.getElementById("already-dark-reason");
 
 const sliderIds = ["brightness", "contrast", "warmth", "dim"];
 
@@ -124,24 +127,37 @@ function nextPayload(partial = {}) {
   return next;
 }
 
+function setAlreadyDarkHint(show, reason) {
+  if (!alreadyDarkEl) return;
+  alreadyDarkEl.hidden = !show;
+  if (alreadyDarkReasonEl) {
+    alreadyDarkReasonEl.textContent = reason || "dark theme";
+  }
+  if (!show) {
+    alreadyDarkEl.classList.remove("is-open");
+    if (alreadyDarkToggleEl) alreadyDarkToggleEl.setAttribute("aria-expanded", "false");
+    if (alreadyDarkDetailEl) alreadyDarkDetailEl.hidden = true;
+  }
+}
+
 async function refreshSkipHint() {
   if (!alreadyDarkEl || restricted || !hostname) {
-    if (alreadyDarkEl) alreadyDarkEl.hidden = true;
+    setAlreadyDarkHint(false);
     return;
   }
   try {
     const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab?.id) {
-      alreadyDarkEl.hidden = true;
+      setAlreadyDarkHint(false);
       return;
     }
     const status = await chrome.tabs.sendMessage(tab.id, { type: "darkside-status" }, { frameId: 0 });
-    alreadyDarkEl.hidden = !status?.skippedAlreadyDark;
+    setAlreadyDarkHint(Boolean(status?.skippedAlreadyDark), status?.reason);
     if (typeof status?.invert === "boolean") {
       darkModeEl.checked = status.invert;
     }
   } catch {
-    alreadyDarkEl.hidden = true;
+    setAlreadyDarkHint(false);
   }
 }
 
@@ -200,7 +216,7 @@ async function load() {
   setInteractive(!restricted);
 
   if (restricted) {
-    alreadyDarkEl.hidden = true;
+    setAlreadyDarkHint(false);
     return;
   }
 
@@ -213,6 +229,13 @@ siteEnabledEl.addEventListener("change", async () => {
   siteStateEl.textContent = enabled ? "On" : "Off";
   setTunePanel();
   await persist(nextPayload({ enabled }));
+});
+
+alreadyDarkToggleEl?.addEventListener("click", () => {
+  if (!alreadyDarkEl || alreadyDarkEl.hidden) return;
+  const open = alreadyDarkEl.classList.toggle("is-open");
+  alreadyDarkToggleEl.setAttribute("aria-expanded", String(open));
+  if (alreadyDarkDetailEl) alreadyDarkDetailEl.hidden = !open;
 });
 
 darkModeEl.addEventListener("change", async () => {
@@ -278,9 +301,10 @@ document.getElementById("reset-site").addEventListener("click", async () => {
   if (restricted || !hostname) return;
   const next = darksideNormalize(stored);
   delete next.siteOverrides[hostname];
-  stored = next;
   await persist(next);
-  paintForm(darksideEffective(next, hostname));
+  const effective = darksideEffective(stored, hostname);
+  paintForm(effective);
+  await previewTab(stored);
 });
 
 document.getElementById("open-options").addEventListener("click", () => {
