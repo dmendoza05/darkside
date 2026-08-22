@@ -172,9 +172,6 @@ async function refreshSkipHint() {
     }
     const status = await chrome.tabs.sendMessage(tab.id, { type: "darkside-status" }, { frameId: 0 });
     setAlreadyDarkHint(Boolean(status?.skippedAlreadyDark), status?.reason);
-    if (typeof status?.invert === "boolean") {
-      darkModeEl.checked = status.invert;
-    }
   } catch {
     setAlreadyDarkHint(false);
   }
@@ -204,7 +201,9 @@ async function persist(next) {
     await chrome.storage.local.set(patch);
   }
   saving = false;
-  setTimeout(refreshSkipHint, 120);
+  if ("darkMode" in patch || "enabled" in patch || "siteOverrides" in patch) {
+    setTimeout(refreshSkipHint, 120);
+  }
 }
 
 async function previewTab(next) {

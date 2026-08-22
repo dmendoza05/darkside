@@ -53,24 +53,32 @@
     const marked = markedDarkReason();
     if (marked) return marked;
 
-    const weInverted = html.getAttribute("data-darkside-invert") === "1";
-    if (!weInverted) {
-      try {
-        const scheme = String(getComputedStyle(html).colorScheme || "");
-        if (/\bdark\b/i.test(scheme) && !/\blight\b/i.test(scheme)) return "color-scheme: dark";
-      } catch {
-        /* ignore */
-      }
-    }
-
+    const invert = html.getAttribute("data-darkside-invert");
+    const fill = html.getAttribute("data-darkside-fill");
+    html.setAttribute("data-darkside-invert", "0");
     html.removeAttribute("data-darkside-fill");
-    const htmlL = luminance(getComputedStyle(html).backgroundColor);
-    const bodyL = document.body
-      ? luminance(getComputedStyle(document.body).backgroundColor)
-      : null;
-    if (bodyL != null && bodyL < 0.28) return "dark background";
-    if (htmlL != null && htmlL < 0.28) return "dark background";
-    return "";
+    html.style.setProperty("--ds-invert", "0");
+    html.style.setProperty("--ds-hue", "0deg");
+    void html.offsetHeight;
+    try {
+      const scheme = String(getComputedStyle(html).colorScheme || "");
+      if (/\bdark\b/i.test(scheme) && !/\blight\b/i.test(scheme)) return "color-scheme: dark";
+      const htmlL = luminance(getComputedStyle(html).backgroundColor);
+      const bodyL = document.body
+        ? luminance(getComputedStyle(document.body).backgroundColor)
+        : null;
+      if (bodyL != null && bodyL < 0.28) return "dark background";
+      if (htmlL != null && htmlL < 0.28) return "dark background";
+      return "";
+    } catch {
+      return "";
+    } finally {
+      if (invert != null) html.setAttribute("data-darkside-invert", invert);
+      else html.removeAttribute("data-darkside-invert");
+      if (fill != null) html.setAttribute("data-darkside-fill", fill);
+      html.style.setProperty("--ds-invert", invert === "1" ? "1" : "0");
+      html.style.setProperty("--ds-hue", invert === "1" ? "180deg" : "0deg");
+    }
   }
 
   function setDarkSkip(reason) {
@@ -110,20 +118,29 @@
     html.style.removeProperty("--ds-brightness");
     html.style.removeProperty("--ds-contrast");
     html.style.removeProperty("--ds-sepia");
+    html.style.removeProperty("--ds-shade");
     stopBgObserver();
   }
 
-  function paint(effective) {
+  function paint(effective, options = {}) {
     if (!effective.enabled) {
       clearFilters();
       return;
     }
 
     const vars = darksideCssVars(effective);
-    let invert = vars.invert;
-    if (userForcedInvert === true) invert = 1;
-    else if (userForcedInvert === false) invert = 0;
-    else if (skippedAlreadyDark) invert = 0;
+    let invert;
+    if (options.preserveInvert) {
+      invert = html.getAttribute("data-darkside-invert") === "1" ? 1 : 0;
+    } else if (userForcedInvert === true) {
+      invert = 1;
+    } else if (userForcedInvert === false) {
+      invert = 0;
+    } else if (skippedAlreadyDark) {
+      invert = 0;
+    } else {
+      invert = vars.invert;
+    }
 
     html.setAttribute("data-darkside", "");
     html.setAttribute("data-darkside-invert", String(invert));
@@ -132,6 +149,7 @@
     html.style.setProperty("--ds-brightness", vars.brightness);
     html.style.setProperty("--ds-contrast", vars.contrast);
     html.style.setProperty("--ds-sepia", vars.sepia);
+    html.style.setProperty("--ds-shade", vars.shade);
 
     if (invert && htmlNeedsFill()) {
       html.setAttribute("data-darkside-fill", "1");
@@ -147,13 +165,20 @@
     }
   }
 
-  function apply(stored) {
+  function apply(stored, options = {}) {
     if (shouldSkipPage()) {
       clearFilters();
       return;
     }
     lastSettings = stored;
-    paint(darksideEffective(stored, currentHost()));
+    paint(darksideEffective(stored, currentHost()), options);
+  }
+
+  function darkDetectInputsChanged(prev, next) {
+    const host = currentHost();
+    const before = darksideEffective(prev, host);
+    const after = darksideEffective(next, host);
+    return before.darkMode !== after.darkMode || before.enabled !== after.enabled;
   }
 
   function detectAlreadyDark() {
@@ -438,7 +463,7 @@
   function syncNightTimer(stored) {
     const want = Boolean(stored && stored.autoNight);
     if (want && !nightTimer) {
-      nightTimer = setInterval(() => apply(lastSettings), 60000);
+      nightTimer = setInterval(() => apply(lastSettings, { preserveInvert: true }), 60000);
     } else if (!want && nightTimer) {
       clearInterval(nightTimer);
       nightTimer = 0;
@@ -459,9 +484,14 @@
 
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== "local") return;
-    apply(darksideMergeChanges(lastSettings, changes));
+    const prev = lastSettings;
+    const next = darksideMergeChanges(prev, changes);
+    const darkChanged = darkDetectInputsChanged(prev, next);
+    apply(next, { preserveInvert: !darkChanged });
     syncNightTimer(lastSettings);
-    if (userForcedInvert === null) detectAlreadyDark();
+    if (userForcedInvert === null && darkChanged) {
+      detectAlreadyDark();
+    }
   });
 
   chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
@@ -476,13 +506,12 @@
     if (message.type === "darkside-preview") {
       if (shouldSkipPage()) return;
       if (message.effective && typeof message.effective === "object") {
-        paint(message.effective);
+        paint(message.effective, { preserveInvert: true });
       }
       return;
     }
     if (message.type === "darkside-apply") {
-      apply(message.settings || lastSettings);
-      if (userForcedInvert === null) detectAlreadyDark();
+      apply(message.settings || lastSettings, { preserveInvert: true });
       return;
     }
     if (message.type === "darkside-status") {

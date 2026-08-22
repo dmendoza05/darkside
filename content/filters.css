@@ -8,8 +8,19 @@ html[data-darkside][data-darkside-invert="1"] {
   color-scheme: dark;
 }
 
-html[data-darkside][data-darkside-invert="1"][data-darkside-fill="1"] {
-  background-color: #ffffff !important;
+html[data-darkside]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  background: #000;
+  opacity: var(--ds-shade, 0);
+}
+
+/* Parent invert would turn a black overlay white. Use white so it becomes black. */
+html[data-darkside][data-darkside-invert="1"]::after {
+  background: #fff;
 }
 
 /* Uninvert replaced media so photos/video stay true-color.

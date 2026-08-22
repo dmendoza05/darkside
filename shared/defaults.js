@@ -52,7 +52,7 @@ function darksideNormalizeOverride(raw) {
   if ("enabled" in raw) out.enabled = Boolean(raw.enabled);
   if ("darkMode" in raw) out.darkMode = Boolean(raw.darkMode);
   if ("tuneEnabled" in raw) out.tuneEnabled = raw.tuneEnabled !== false;
-  if ("brightness" in raw) out.brightness = darksideClamp(raw.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness);
+  if ("brightness" in raw) out.brightness = darksideClamp(raw.brightness, 25, 150, DARKSIDE_DEFAULTS.brightness);
   if ("contrast" in raw) out.contrast = darksideClamp(raw.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast);
   if ("warmth" in raw) out.warmth = darksideClamp(raw.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth);
   if ("dim" in raw) out.dim = darksideClamp(raw.dim, 0, 70, DARKSIDE_DEFAULTS.dim);
@@ -75,7 +75,7 @@ function darksideNormalize(stored) {
     enabled: raw.enabled !== undefined ? Boolean(raw.enabled) : DARKSIDE_DEFAULTS.enabled,
     darkMode: raw.darkMode !== undefined ? Boolean(raw.darkMode) : DARKSIDE_DEFAULTS.darkMode,
     tuneEnabled: raw.tuneEnabled !== false,
-    brightness: darksideClamp(raw.brightness, 50, 150, DARKSIDE_DEFAULTS.brightness),
+    brightness: darksideClamp(raw.brightness, 25, 150, DARKSIDE_DEFAULTS.brightness),
     contrast: darksideClamp(raw.contrast, 50, 150, DARKSIDE_DEFAULTS.contrast),
     warmth: darksideClamp(raw.warmth, 0, 80, DARKSIDE_DEFAULTS.warmth),
     dim: darksideClamp(raw.dim, 0, 70, DARKSIDE_DEFAULTS.dim),
@@ -160,13 +160,19 @@ function darksideCssVars(effective) {
   const warmthVal = tuneOn ? Number(effective.warmth) : 0;
   const dimVal = tuneOn ? Number(effective.dim) : 0;
   const dimFactor = 1 - (dimVal / 100) * 0.85;
-  const brightness = (brightnessVal / 100) * dimFactor;
+  const combined = (brightnessVal / 100) * dimFactor;
+  const safe = Number.isFinite(combined) ? combined : 1;
+  // Filter brightness floors out on inverted pages (background already black).
+  // Darken below 100% with an overlay so the slider keeps working to 25%.
+  const filterBrightness = safe >= 1 ? safe : 1;
+  const shade = safe >= 1 ? 0 : 1 - safe;
   const contrast = contrastVal / 100;
   const sepia = (warmthVal / 100) * 0.65;
   return {
     invert,
     hue: invert ? "180deg" : "0deg",
-    brightness: (Number.isFinite(brightness) ? brightness : 1).toFixed(3),
+    brightness: filterBrightness.toFixed(3),
+    shade: shade.toFixed(3),
     contrast: (Number.isFinite(contrast) ? contrast : 1).toFixed(3),
     sepia: (Number.isFinite(sepia) ? sepia : 0).toFixed(3),
   };
