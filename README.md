@@ -38,12 +38,11 @@ After you change the code, click **Reload** on the Darkside card in `chrome://ex
 - **This site** — turn Darkside off for the current hostname
 - **Presets** — Soft, Night, Sunset, Contrast, Reading (eye-care only; does not turn on invert)
 - **Sliders** — Brightness, Contrast, Warmth, Dim (work with Dark Mode off). Changes save for the current site
-- **Reset this site** — drop that site’s custom settings and use the global defaults
 - **Settings** (gear) — global defaults, auto-night window, and a list of per-site settings
 
 Keyboard shortcut: `Alt` + `Shift` + `D` toggles dark mode on the current tab. Change it at `chrome://extensions/shortcuts`.
 
-A few canvas-heavy apps or unusual CSS pages may look off. Turn the site off in the popup, or use **Reset this site**.
+A few canvas-heavy apps or unusual CSS pages may look off. Turn the site off in the popup, or remove it under Settings → Site Preferences.
 
 ## License
 

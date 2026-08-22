@@ -73,52 +73,80 @@
           </div>
         </div>
 
-        <label class="dark-toggle">
-          <span>
-            <strong>Eye Saver</strong>
-            <small>Control brightness, contrast, warmth, dim, and presets.</small>
-          </span>
-          <input id="tuneEnabled" type="checkbox" />
-          <span class="switch" aria-hidden="true"></span>
-        </label>
+        <div class="dark-card">
+          <label class="dark-toggle">
+            <span>
+              <strong>Eye Saver</strong>
+              <small>Control brightness, contrast, warmth, dim, and presets.</small>
+            </span>
+            <input id="tuneEnabled" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </label>
 
-        <div id="tune-panel">
-          <section>
-            <span class="eyebrow">Presets</span>
-            <div class="presets" role="group" aria-label="Presets">
-              <button type="button" data-preset="soft">Soft</button>
-              <button type="button" data-preset="night">Night</button>
-              <button type="button" data-preset="sunset">Sunset</button>
-              <button type="button" data-preset="contrast">Contrast</button>
-              <button type="button" data-preset="reading">Reading</button>
-            </div>
-          </section>
+          <div id="tune-panel">
+            <section class="tune-section is-open">
+              <button
+                type="button"
+                id="sliders-toggle"
+                class="tune-section-toggle"
+                aria-expanded="true"
+                aria-controls="sliders-body"
+              >
+                <span class="eyebrow">Sliders</span>
+                <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div id="sliders-body" class="tune-section-body">
+                <div class="sliders" id="sliders">
+                  <label>
+                    <span>Brightness <b id="brightness-val">100%</b></span>
+                    <input id="brightness" type="range" min="50" max="150" value="100" />
+                  </label>
+                  <label>
+                    <span>Contrast <b id="contrast-val">100%</b></span>
+                    <input id="contrast" type="range" min="50" max="150" value="100" />
+                  </label>
+                  <label>
+                    <span>Warmth <b id="warmth-val">20</b></span>
+                    <input id="warmth" type="range" min="0" max="80" value="20" />
+                  </label>
+                  <label>
+                    <span>Dim <b id="dim-val">0</b></span>
+                    <input id="dim" type="range" min="0" max="70" value="0" />
+                  </label>
+                </div>
+                <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+              </div>
+            </section>
 
-          <section class="sliders" id="sliders">
-            <label>
-              <span>Brightness <b id="brightness-val">100%</b></span>
-              <input id="brightness" type="range" min="50" max="150" value="100" />
-            </label>
-            <label>
-              <span>Contrast <b id="contrast-val">100%</b></span>
-              <input id="contrast" type="range" min="50" max="150" value="100" />
-            </label>
-            <label>
-              <span>Warmth <b id="warmth-val">20</b></span>
-              <input id="warmth" type="range" min="0" max="80" value="20" />
-            </label>
-            <label>
-              <span>Dim <b id="dim-val">0</b></span>
-              <input id="dim" type="range" min="0" max="70" value="0" />
-            </label>
-          </section>
+            <hr class="tune-divider" />
 
-          <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+            <section class="tune-section is-open">
+              <button
+                type="button"
+                id="presets-toggle"
+                class="tune-section-toggle"
+                aria-expanded="true"
+                aria-controls="presets-body"
+              >
+                <span class="eyebrow">Presets</span>
+                <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div id="presets-body" class="tune-section-body">
+                <div class="presets" role="group" aria-label="Presets">
+                  <button type="button" data-preset="soft">Soft</button>
+                  <button type="button" data-preset="night">Night</button>
+                  <button type="button" data-preset="sunset">Sunset</button>
+                  <button type="button" data-preset="contrast">Contrast</button>
+                  <button type="button" data-preset="reading">Reading</button>
+                </div>
+              </div>
+            </section>
+          </div>
         </div>
-      </div>
-
-      <div class="actions">
-        <button type="button" id="reset-site" class="text-btn">Reset this site</button>
       </div>
     </div>
 

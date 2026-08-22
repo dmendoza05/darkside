@@ -8,11 +8,15 @@
   --text: #f4f1ea;
   --text-muted: #b8a878;
   --border: #2a2a2a;
-  --danger: #c9846a;
 }
 
 * {
   box-sizing: border-box;
+}
+
+html {
+  max-height: 600px;
+  overflow-y: auto;
 }
 
 html,
@@ -23,9 +27,12 @@ body {
 
 body {
   width: 328px;
+  min-height: fit-content;
   color: var(--text);
   background: var(--bg);
   font: 13px/1.4 "Avenir Next", "Segoe UI", system-ui, sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
 }
 
 .header {
@@ -77,8 +84,7 @@ h1 {
 }
 
 #main.is-restricted .site-card,
-#main.is-restricted #page-controls,
-#main.is-restricted .actions {
+#main.is-restricted #page-controls {
   opacity: 0.4;
   pointer-events: none;
 }
@@ -287,11 +293,58 @@ input:focus-visible + .switch {
 #tune-panel {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 10px;
+  padding: 10px 12px 12px;
+  border-top: 1px solid var(--border);
 }
 
 #tune-panel[hidden] {
   display: none;
+}
+
+.tune-section-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 0;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  font: inherit;
+  cursor: pointer;
+}
+
+.tune-section-toggle .eyebrow {
+  margin-bottom: 0;
+}
+
+.tune-section-toggle .chevron {
+  flex: 0 0 auto;
+  color: var(--gold-muted);
+  transition: transform 0.15s ease;
+}
+
+.tune-section.is-open .chevron {
+  transform: rotate(90deg);
+}
+
+.tune-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.tune-section-body[hidden] {
+  display: none;
+}
+
+.tune-divider {
+  margin: 2px 0;
+  border: 0;
+  border-top: 1px solid var(--border);
 }
 
 .presets {
@@ -303,7 +356,7 @@ input:focus-visible + .switch {
 .presets button {
   padding: 6px 10px;
   color: var(--text);
-  background: var(--bg-elev);
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: 999px;
   font: inherit;
@@ -355,11 +408,6 @@ input[type="range"]::-webkit-slider-thumb {
   cursor: pointer;
 }
 
-.actions {
-  display: flex;
-  justify-content: flex-end;
-}
-
 .text-btn {
   padding: 0;
   color: var(--gold-muted);
@@ -371,9 +419,5 @@ input[type="range"]::-webkit-slider-thumb {
 
 .text-btn:hover {
   color: var(--gold);
-}
-
-#reset-site {
-  color: var(--danger);
 }
 

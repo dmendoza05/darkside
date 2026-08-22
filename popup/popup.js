@@ -7,6 +7,10 @@ const restrictedEl = document.getElementById("restricted");
 const mainEl = document.getElementById("main");
 const pageControlsEl = document.getElementById("page-controls");
 const tunePanelEl = document.getElementById("tune-panel");
+const slidersToggleEl = document.getElementById("sliders-toggle");
+const presetsToggleEl = document.getElementById("presets-toggle");
+const slidersBodyEl = document.getElementById("sliders-body");
+const presetsBodyEl = document.getElementById("presets-body");
 const alreadyDarkEl = document.getElementById("already-dark");
 const alreadyDarkToggleEl = document.getElementById("already-dark-toggle");
 const alreadyDarkDetailEl = document.getElementById("already-dark-detail");
@@ -63,16 +67,30 @@ function setInteractive(on) {
     document.getElementById(id).disabled = !on;
   });
   document.getElementById("reset-sliders").disabled = !on;
-  document.getElementById("reset-site").disabled = !on;
   document.querySelectorAll(".presets button").forEach((btn) => {
     btn.disabled = !on;
   });
+}
+
+function fitPopup() {
+  const html = document.documentElement;
+  const body = document.body;
+  const apply = () => {
+    html.style.height = "auto";
+    body.style.height = "auto";
+    const height = Math.ceil(Math.max(body.scrollHeight, html.scrollHeight));
+    html.style.height = `${height}px`;
+    body.style.height = `${height}px`;
+  };
+  apply();
+  requestAnimationFrame(apply);
 }
 
 function setTunePanel() {
   const siteOn = siteEnabledEl.checked;
   pageControlsEl.classList.toggle("is-disabled", !restricted && !siteOn);
   tunePanelEl.hidden = restricted || !(siteOn && tuneEnabledEl.checked);
+  fitPopup();
 }
 
 function paintForm(effective) {
@@ -138,6 +156,7 @@ function setAlreadyDarkHint(show, reason) {
     if (alreadyDarkToggleEl) alreadyDarkToggleEl.setAttribute("aria-expanded", "false");
     if (alreadyDarkDetailEl) alreadyDarkDetailEl.hidden = true;
   }
+  fitPopup();
 }
 
 async function refreshSkipHint() {
@@ -217,10 +236,12 @@ async function load() {
 
   if (restricted) {
     setAlreadyDarkHint(false);
+    fitPopup();
     return;
   }
 
   await refreshSkipHint();
+  fitPopup();
 }
 
 siteEnabledEl.addEventListener("change", async () => {
@@ -236,6 +257,7 @@ alreadyDarkToggleEl?.addEventListener("click", () => {
   const open = alreadyDarkEl.classList.toggle("is-open");
   alreadyDarkToggleEl.setAttribute("aria-expanded", String(open));
   if (alreadyDarkDetailEl) alreadyDarkDetailEl.hidden = !open;
+  fitPopup();
 });
 
 darkModeEl.addEventListener("change", async () => {
@@ -249,6 +271,20 @@ tuneEnabledEl.addEventListener("change", async () => {
   setTunePanel();
   await persist(nextPayload({ tuneEnabled: tuneEnabledEl.checked }));
 });
+
+function bindTuneSection(button, body) {
+  if (!button || !body) return;
+  button.addEventListener("click", () => {
+    const section = button.closest(".tune-section");
+    const open = section.classList.toggle("is-open");
+    button.setAttribute("aria-expanded", String(open));
+    body.hidden = !open;
+    fitPopup();
+  });
+}
+
+bindTuneSection(slidersToggleEl, slidersBodyEl);
+bindTuneSection(presetsToggleEl, presetsBodyEl);
 
 sliderIds.forEach((id) => {
   const el = document.getElementById(id);
@@ -295,16 +331,6 @@ document.getElementById("reset-sliders").addEventListener("click", async () => {
   setSlider("dim", defaults.dim);
   highlightPreset(defaults);
   await persist(nextPayload(defaults));
-});
-
-document.getElementById("reset-site").addEventListener("click", async () => {
-  if (restricted || !hostname) return;
-  const next = darksideNormalize(stored);
-  delete next.siteOverrides[hostname];
-  await persist(next);
-  const effective = darksideEffective(stored, hostname);
-  paintForm(effective);
-  await previewTab(stored);
 });
 
 document.getElementById("open-options").addEventListener("click", () => {
