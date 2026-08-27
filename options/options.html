@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darkside</title>
+    <link rel="stylesheet" href="options.css" />
+  </head>
+  <body>
+    <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-row">
+          <img class="logo" src="../icons/logo.png" alt="" width="36" height="36" />
+          <span class="brand-name">
+            <strong>Darkside</strong>
+            <span id="app-version" class="version"></span>
+          </span>
+        </div>
+        <span class="slogan">Let your eyes join the dark side</span>
+      </div>
+      <nav class="tabs" aria-label="Options">
+        <button type="button" class="tab is-active" data-tab="settings">Settings</button>
+        <button type="button" class="tab" data-tab="sites">Site Preferences</button>
+        <button type="button" class="tab" data-tab="presets">Custom Presets</button>
+        <button type="button" class="tab" data-tab="help">Help</button>
+      </nav>
+      <section class="sidebar-footer card">
+        <h2>Keyboard shortcut</h2>
+        <p>
+          Toggle dark mode with<br>
+          <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>D</kbd>
+        </p>
+        <p class="hint">Change it at <span class="mono">chrome://extensions/shortcuts</span></p>
+      </section>
+    </aside>
+
+    <main>
+      <section id="panel-settings" class="panel is-active">
+        <header class="header">
+          <h1>Settings</h1>
+          <p>Global defaults and controls</p>
+        </header>
+
+        <section class="card">
+          <h2>Global defaults</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Enable Darkside</strong>
+              <small>Master switch for every site</small>
+            </span>
+            <input id="enabled" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-row">
+            <span>
+              <strong>Dark Mode</strong>
+              <small>Default invert for sites without an override</small>
+            </span>
+            <input id="darkMode" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <label class="toggle-row">
+            <span>
+              <strong>Eye care</strong>
+              <small>Default brightness, contrast, warmth, dim, and presets</small>
+            </span>
+            <input id="tuneEnabled" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+
+          <div class="sliders">
+            <label>
+              <span>Brightness <b id="brightness-val">100%</b></span>
+              <input id="brightness" type="range" min="25" max="150" value="100" />
+            </label>
+            <label>
+              <span>Contrast <b id="contrast-val">100%</b></span>
+              <input id="contrast" type="range" min="50" max="150" value="100" />
+            </label>
+            <label>
+              <span>Warmth <b id="warmth-val">20</b></span>
+              <input id="warmth" type="range" min="0" max="80" value="20" />
+            </label>
+            <label>
+              <span>Dim <b id="dim-val">0</b></span>
+              <input id="dim" type="range" min="0" max="70" value="0" />
+            </label>
+          </div>
+        </section>
+
+        <section class="card">
+          <h2>Auto night</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Enable after hours</strong>
+              <small>Turns on dark mode and extra warmth in this window</small>
+            </span>
+            <input id="autoNight" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+          <div class="times">
+            <label>
+              From
+              <input id="autoNightStart" type="time" />
+            </label>
+            <label>
+              To
+              <input id="autoNightEnd" type="time" />
+            </label>
+          </div>
+        </section>
+      </section>
+
+      <section id="panel-sites" class="panel" hidden>
+        <header class="header">
+          <h1>Site Preferences</h1>
+          <p>Per-site brightness, contrast, and on/off settings</p>
+        </header>
+
+        <section class="card">
+          <h2>Site settings</h2>
+          <input id="search" class="search" type="search" placeholder="Search sites" />
+          <ul id="site-list" class="site-list"></ul>
+          <p id="empty" class="empty">
+            No per-site settings yet. Change sliders or presets on a page to save them for that site.
+          </p>
+        </section>
+      </section>
+
+      <section id="panel-presets" class="panel" hidden>
+        <header class="header">
+          <h1>Custom Presets</h1>
+          <p>Personalize the presets that show up in the popup</p>
+        </header>
+
+        <section class="card">
+          <h2>Preset Preference</h2>
+          <label class="toggle-row">
+            <span>
+              <strong>Show default presets</strong>
+              <small>Soft, Night, Sunset, Contrast, and Reading in the popup</small>
+            </span>
+            <input id="showDefaultPresets" type="checkbox" />
+            <span class="switch"></span>
+          </label>
+        </section>
+
+        <section class="card">
+          <div class="card-head">
+            <h2>Your presets</h2>
+            <button
+              type="button"
+              id="add-preset"
+              class="add-btn"
+              aria-haspopup="dialog"
+              aria-expanded="false"
+              aria-controls="new-preset-dialog"
+            >
+              Add preset
+            </button>
+          </div>
+          <ul id="preset-list" class="preset-list"></ul>
+          <p id="preset-empty" class="empty">
+            No custom presets yet. Add one, or create it from the popup.
+          </p>
+        </section>
+      </section>
+
+      <section id="panel-help" class="panel" hidden>
+        <header class="header">
+          <h1>Help</h1>
+          <p>Source, support, and the people behind Darkside</p>
+        </header>
+
+        <section class="card">
+          <h2>Project</h2>
+          <a class="link-row" href="https://github.com/dmendoza05/darkside" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>GitHub repository</strong>
+              <small>Source code, issues, and local install instructions</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+          <p class="link-row is-wip">
+            <span>
+              <strong>Chrome Web Store</strong>
+              <small>Official listing — coming soon</small>
+            </span>
+            <span class="wip">WIP</span>
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>Say hi or follow me</h2>
+          <a class="link-row" href="https://www.linkedin.com/in/dmendoza05/" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>LinkedIn</strong>
+              <small>linkedin.com/in/dmendoza05</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+          <a class="link-row" href="https://github.com/dmendoza05" target="_blank" rel="noopener noreferrer">
+            <span>
+              <strong>GitHub</strong>
+              <small>github.com/dmendoza05</small>
+            </span>
+            <span class="link-go">Open</span>
+          </a>
+        </section>
+
+        <section class="card">
+          <h2>Support</h2>
+          <p class="link-row is-wip">
+            <span>
+              <strong>Buy Me a Coffee</strong>
+              <small>Tip jar if Darkside helps your eyes — coming soon</small>
+            </span>
+            <span class="wip">WIP</span>
+          </p>
+        </section>
+
+        <section class="card">
+          <h2>License</h2>
+          <p class="hint">
+            Darkside is released under the <strong>MIT License</strong>.
+          </p>
+        </section>
+
+        <p class="cursor-credit">
+          <img class="cursor-logo" src="../icons/cursor-ide.png" alt="Cursor IDE" width="40" height="40" />
+          Created with Cursor (Not sponsored/affiliated)
+        </p>
+      </section>
+    </main>
+    </div>
+
+    <dialog id="new-preset-dialog" class="preset-dialog" aria-labelledby="new-preset-title">
+      <div class="preset-dialog-card">
+        <div class="preset-dialog-head">
+          <h3 id="new-preset-title">New preset</h3>
+          <button type="button" id="close-new-preset" class="dialog-close" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <label class="dialog-field">
+          <span>Name</span>
+          <input
+            id="new-preset-name"
+            type="text"
+            maxlength="24"
+            placeholder="Preset name"
+            autocomplete="off"
+          />
+        </label>
+        <div class="sliders">
+          <label>
+            <span>Brightness <b id="new-brightness-val">100%</b></span>
+            <input id="new-brightness" type="range" min="25" max="150" value="100" />
+          </label>
+          <label>
+            <span>Contrast <b id="new-contrast-val">100%</b></span>
+            <input id="new-contrast" type="range" min="50" max="150" value="100" />
+          </label>
+          <label>
+            <span>Warmth <b id="new-warmth-val">20</b></span>
+            <input id="new-warmth" type="range" min="0" max="80" value="20" />
+          </label>
+          <label>
+            <span>Dim <b id="new-dim-val">0</b></span>
+            <input id="new-dim" type="range" min="0" max="70" value="0" />
+          </label>
+        </div>
+        <div class="preset-dialog-actions">
+          <button type="button" id="cancel-new-preset" class="dialog-cancel">Cancel</button>
+          <button type="button" id="save-new-preset" class="add-btn">Save</button>
+        </div>
+      </div>
+    </dialog>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

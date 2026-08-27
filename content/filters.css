@@ -1,0 +1,50 @@
+html[data-darkside] {
+  filter: invert(var(--ds-invert, 0)) hue-rotate(var(--ds-hue, 0deg))
+    brightness(var(--ds-brightness, 1)) contrast(var(--ds-contrast, 1))
+    sepia(var(--ds-sepia, 0)) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] {
+  color-scheme: dark;
+}
+
+html[data-darkside]::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 2147483647;
+  background: #000;
+  opacity: var(--ds-shade, 0);
+}
+
+/* Parent invert would turn a black overlay white. Use white so it becomes black. */
+html[data-darkside][data-darkside-invert="1"]::after {
+  background: #fff;
+}
+
+/* Uninvert replaced media so photos/video stay true-color.
+   Do not uninvert <picture> — the inner <img> already cancels invert.
+   Do not uninvert inline <svg> icons — they should follow the page. */
+html[data-darkside][data-darkside-invert="1"] :is(img, video, canvas, iframe, embed, object) {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] svg:has(> image) {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] img[src$=".svg"],
+html[data-darkside][data-darkside-invert="1"] img[src*=".svg?"] {
+  filter: none !important;
+}
+
+/* CSS/script background-image photos (marked by the content script). */
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] {
+  filter: invert(1) hue-rotate(180deg) !important;
+}
+
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] :is(img, video, canvas, iframe, embed, object),
+html[data-darkside][data-darkside-invert="1"] [data-darkside-bg] svg:has(> image) {
+  filter: none !important;
+}

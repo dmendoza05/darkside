@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Presets — Darkside test</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dark-theme.html">Dark theme</a>
+        <a href="images.html">Images</a>
+        <a href="presets.html" aria-current="page">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Presets only tune the eyes, not invert.</h1>
+        <p class="lede">
+          Open the popup on this tab. Click Soft, Night, Sunset, Contrast, then Reading.
+          Invert should not flip on by itself. Use this page with Dark Mode off first so
+          the sliders are easy to see.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>Pass if</strong>
+        <p>
+          Each preset moves brightness, contrast, warmth, and dim to the values below, and
+          the matching chip in the popup lights up. The cream page does not suddenly invert
+          unless Dark Mode is already on. Reset sliders returns to the default slider values.
+        </p>
+      </div>
+
+      <section class="section">
+        <h2>Expected slider values</h2>
+        <table class="preset-table">
+          <thead>
+            <tr>
+              <th>Preset</th>
+              <th>Brightness</th>
+              <th>Contrast</th>
+              <th>Warmth</th>
+              <th>Dim</th>
+              <th>Look for</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Soft</td>
+              <td>100%</td>
+              <td>100%</td>
+              <td>15</td>
+              <td>0</td>
+              <td>Almost neutral, slight warmth</td>
+            </tr>
+            <tr>
+              <td>Night</td>
+              <td>85%</td>
+              <td>105%</td>
+              <td>45</td>
+              <td>25</td>
+              <td>Dimmer, amber, slightly punched</td>
+            </tr>
+            <tr>
+              <td>Sunset</td>
+              <td>95%</td>
+              <td>100%</td>
+              <td>70</td>
+              <td>10</td>
+              <td>Strong sepia / orange cast</td>
+            </tr>
+            <tr>
+              <td>Contrast</td>
+              <td>105%</td>
+              <td>135%</td>
+              <td>8</td>
+              <td>0</td>
+              <td>Inkier type, harder edges</td>
+            </tr>
+            <tr>
+              <td>Reading</td>
+              <td>92%</td>
+              <td>110%</td>
+              <td>35</td>
+              <td>8</td>
+              <td>Soft paper, mild warmth</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section grid">
+        <article class="reading-pane article">
+          <h2>Reading sample</h2>
+          <p>
+            The harbor lamps came on before the sun had fully gone. Warmth in the filter
+            should make this paragraph feel like cheap paper under a bulb. Contrast should
+            make the letters bite. Dim should feel like someone lowered the room, not like
+            the ink went gray.
+          </p>
+          <p>
+            Night is the heaviest: less brightness, more warmth, a real dim overlay.
+            Sunset is the orange one. Soft is the control — if Soft and the global default
+            look identical, check that warmth actually moved from 20 to 15.
+          </p>
+        </article>
+        <div>
+          <h2>Warmth strip</h2>
+          <p class="meta">Sepia stacks on these oranges. Sunset should look almost brown-gold.</p>
+          <div class="warmth-strip" aria-hidden="true">
+            <span></span><span></span><span></span><span></span>
+            <span></span><span></span><span></span><span></span>
+          </div>
+          <h2 style="margin-top: 22px">UI chrome</h2>
+          <p class="meta">Buttons and a photo so you can compare text vs media under each preset.</p>
+          <div class="ui-mock">
+            <button type="button">Primary action</button>
+            <img class="media" src="assets/sunset.png" alt="Sunset photo under presets" width="640" height="360" />
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>Neutral vs saturated</h2>
+        <p class="meta">Contrast pops the black/white pair. Warmth tints the white card first.</p>
+        <div class="swatches">
+          <div class="swatch white"></div>
+          <div class="swatch black"></div>
+          <div class="swatch red"></div>
+          <div class="swatch yellow"></div>
+          <div class="swatch blue"></div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darkside test pages</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html" aria-current="page">Home</a>
+        <a href="dark-theme.html">Dark theme</a>
+        <a href="images.html">Images</a>
+        <a href="presets.html">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Host these pages and poke the extension.</h1>
+        <p class="lede">
+          Each page is one fixture. This home page is a normal light site, so Dark Mode
+          should invert it. Photos on the other pages have known colors so a missed
+          un-invert is obvious.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>How to host</strong>
+        <p>
+          From the repo: <code>cd test && ./serve.sh</code>
+          (or <code>python3 -m http.server 8765</code>). Open
+          <code>http://127.0.0.1:8765</code>, load the unpacked extension, then walk the cases.
+        </p>
+      </div>
+
+      <section class="home-cards">
+        <a href="dark-theme.html">
+          <h2>1. Dark theme</h2>
+          <small>
+            Already-dark pages should skip invert. Popup hint should appear. Includes
+            luminance, data-theme, and class variants.
+          </small>
+        </a>
+        <a href="images.html">
+          <h2>2. Images</h2>
+          <small>
+            Photos stay true-color: img, picture, canvas, background-image, and SVG with a
+            raster. Icons and SVG files follow the page invert.
+          </small>
+        </a>
+        <a href="presets.html">
+          <h2>3. Presets</h2>
+          <small>
+            Soft, Night, Sunset, Contrast, and Reading only move brightness, contrast,
+            warmth, and dim. They do not turn invert on.
+          </small>
+        </a>
+      </section>
+
+      <p class="serve">
+        $ cd test && ./serve.sh<br />
+        Darkside test pages → <code>http://127.0.0.1:8765/</code>
+      </p>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark" data-color-mode="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Marked dark — Darkside test</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dark-theme.html" aria-current="page">Dark theme</a>
+        <a href="images.html">Images</a>
+        <a href="presets.html">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Marked dark, painted light.</h1>
+        <p class="lede">
+          <code>html</code> has <code>data-theme="dark"</code> and
+          <code>data-color-mode="dark"</code>, but the page itself is the same cream
+          light theme as home. Detection should key off the marker, not the background.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>Pass if</strong>
+        <p>
+          Invert is skipped and this page stays cream. If Darkside ignored the marker, the
+          sheet would invert to a dark negative. Force Dark Mode in the popup to confirm
+          invert still works when you ask for it.
+        </p>
+      </div>
+
+      <div class="swatches">
+        <div class="swatch red"></div>
+        <div class="swatch yellow"></div>
+        <div class="swatch green"></div>
+        <div class="swatch blue"></div>
+        <div class="swatch white"></div>
+        <div class="swatch black"></div>
+      </div>
+    </main>
+  </body>
+</html>

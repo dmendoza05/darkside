@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Darkside</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="header">
+      <img class="logo" src="../icons/logo.png" alt="" width="28" height="28" />
+      <h1>Darkside</h1>
+      <button id="open-options" class="icon-btn" title="Settings" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path
+            d="M12 15.5a3.5 3.5 0 1 0 0-7 3.5 3.5 0 0 0 0 7Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+          />
+          <path
+            d="M19.4 13a7.8 7.8 0 0 0 .1-2l2-1.5-2-3.5-2.4 1a7.6 7.6 0 0 0-1.7-1L15 4h-4l-.4 2.5a7.6 7.6 0 0 0-1.7 1l-2.4-1-2 3.5 2 1.5a7.8 7.8 0 0 0 0 2l-2 1.5 2 3.5 2.4-1a7.6 7.6 0 0 0 1.7 1L11 22h4l.4-2.5a7.6 7.6 0 0 0 1.7-1l2.4 1 2-3.5-2-1.5Z"
+            stroke="currentColor"
+            stroke-width="1.7"
+            stroke-linejoin="round"
+          />
+        </svg>
+      </button>
+    </header>
+
+    <div id="main">
+      <p id="restricted" class="restricted" hidden>
+        Darkside can’t run on this page. Try a regular website.
+      </p>
+
+      <section class="site-card">
+        <div class="site-copy">
+          <span class="eyebrow">This site</span>
+          <span id="hostname" class="hostname">—</span>
+        </div>
+        <label class="site-toggle">
+          <span id="site-state">On</span>
+          <input id="siteEnabled" type="checkbox" checked />
+          <span class="switch small" aria-hidden="true"></span>
+        </label>
+      </section>
+
+      <div id="page-controls">
+        <div class="dark-card">
+          <label class="dark-toggle">
+            <span>
+              <strong>Dark Mode</strong>
+              <small>Invert the page. Photos stay true-color.</small>
+            </span>
+            <input id="darkMode" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+          <div id="already-dark" hidden>
+            <button
+              type="button"
+              id="already-dark-toggle"
+              class="already-dark-toggle"
+              aria-expanded="false"
+              aria-controls="already-dark-detail"
+            >
+              <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              <span>Already looks dark — invert off</span>
+            </button>
+            <p id="already-dark-detail" hidden>
+              Detected <b id="already-dark-reason"></b>. Turn Dark Mode on to invert anyway.
+            </p>
+          </div>
+        </div>
+
+        <div class="dark-card">
+          <label class="dark-toggle">
+            <span>
+              <strong>Eye Saver</strong>
+              <small>Control brightness, contrast, warmth, dim, and presets.</small>
+            </span>
+            <input id="tuneEnabled" type="checkbox" />
+            <span class="switch" aria-hidden="true"></span>
+          </label>
+
+          <div id="tune-panel">
+            <section class="tune-section is-open">
+              <button
+                type="button"
+                id="sliders-toggle"
+                class="tune-section-toggle"
+                aria-expanded="true"
+                aria-controls="sliders-body"
+              >
+                <span class="eyebrow">Sliders</span>
+                <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div id="sliders-body" class="tune-section-body">
+                <div class="sliders" id="sliders">
+                  <label>
+                    <span>Brightness <b id="brightness-val">100%</b></span>
+                    <input id="brightness" type="range" min="25" max="150" value="100" />
+                  </label>
+                  <label>
+                    <span>Contrast <b id="contrast-val">100%</b></span>
+                    <input id="contrast" type="range" min="50" max="150" value="100" />
+                  </label>
+                  <label>
+                    <span>Warmth <b id="warmth-val">20</b></span>
+                    <input id="warmth" type="range" min="0" max="80" value="20" />
+                  </label>
+                  <label>
+                    <span>Dim <b id="dim-val">0</b></span>
+                    <input id="dim" type="range" min="0" max="70" value="0" />
+                  </label>
+                </div>
+                <div class="slider-actions">
+                  <button type="button" id="reset-sliders" class="text-btn">Reset sliders</button>
+                  <button type="button" id="create-preset" class="text-btn" aria-expanded="false" aria-controls="create-preset-form">
+                    Create Preset
+                  </button>
+                </div>
+                <div id="create-preset-form" class="create-preset-form" hidden>
+                  <input
+                    id="create-preset-name"
+                    type="text"
+                    maxlength="24"
+                    placeholder="Preset name"
+                    autocomplete="off"
+                    aria-label="Preset name"
+                  />
+                  <button type="button" id="save-preset">Save</button>
+                </div>
+              </div>
+            </section>
+
+            <hr class="tune-divider" />
+
+            <section class="tune-section is-open">
+              <button
+                type="button"
+                id="presets-toggle"
+                class="tune-section-toggle"
+                aria-expanded="true"
+                aria-controls="presets-body"
+              >
+                <span class="eyebrow">Presets</span>
+                <svg class="chevron" width="10" height="10" viewBox="0 0 10 10" aria-hidden="true">
+                  <path d="M3.2 1.5 7 5 3.2 8.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </button>
+              <div id="presets-body" class="tune-section-body">
+                <div class="presets" role="group" aria-label="Presets"></div>
+                <p id="presets-empty" class="presets-empty" hidden>
+                  No presets to show. Create one, or turn on defaults in Custom Presets.
+                </p>
+              </div>
+            </section>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="../shared/defaults.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

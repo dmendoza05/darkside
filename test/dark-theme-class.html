@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" class="dark theme-dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="color-scheme" content="dark" />
+    <title>Class dark — Darkside test</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body class="dark-fixture" style="background-color: #12100e; color: #f4f1ea">
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dark-theme.html" aria-current="page">Dark theme</a>
+        <a href="images.html">Images</a>
+        <a href="presets.html">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Class + color-scheme dark.</h1>
+        <p class="lede">
+          <code>html</code> has classes <code>dark</code> and <code>theme-dark</code>, plus
+          <code>&lt;meta name="color-scheme" content="dark"&gt;</code>. This is the usual
+          SPA “we already ship a dark UI” signal.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>Pass if</strong>
+        <p>
+          Invert stays off. The dashboard below stays dark charcoal, not inverted cream.
+          The popup skip hint should show.
+        </p>
+      </div>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Inbox</h2>
+          <p class="meta">Sample app chrome. Links and gold accents should not flip to blue/purple.</p>
+          <p>Tonight’s reading list · 3 unread</p>
+          <p>Warmth preset notes · yesterday</p>
+        </article>
+        <article class="card">
+          <h2>Accent</h2>
+          <p class="meta">Gold should stay gold while invert is skipped.</p>
+          <div class="swatch" style="background: #f5c75d; width: 100%; height: 72px"></div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

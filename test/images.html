@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Images — Darkside test</title>
+    <link rel="stylesheet" href="css/test.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="index.html">
+        <strong>Darkside</strong>
+        <span>test bench</span>
+      </a>
+      <nav>
+        <a href="index.html">Home</a>
+        <a href="dark-theme.html">Dark theme</a>
+        <a href="images.html" aria-current="page">Images</a>
+        <a href="presets.html">Presets</a>
+      </nav>
+    </header>
+
+    <main>
+      <div class="hero-copy">
+        <h1>Media should keep its real colors.</h1>
+        <p class="lede">
+          Turn <strong>Dark Mode</strong> on. The cream page chrome and the CSS swatches
+          should invert. Photos, video-like canvas, and photo backgrounds should not.
+        </p>
+      </div>
+
+      <div class="expect">
+        <strong>How to read this page</strong>
+        <p>
+          Red CSS boxes become cyan when invert works. A red stripe in a photo must stay
+          red. Inline SVG icons follow the page (they invert). Raster photos, canvas, and
+          most <code>background-image</code> photos are un-inverted.
+        </p>
+      </div>
+
+      <section class="section">
+        <h2>CSS color (should invert)</h2>
+        <p class="meta">If these still look red/yellow/blue, invert is not applied.</p>
+        <div class="swatches">
+          <div class="swatch red"></div>
+          <div class="swatch yellow"></div>
+          <div class="swatch green"></div>
+          <div class="swatch cyan"></div>
+          <div class="swatch blue"></div>
+          <div class="swatch white"></div>
+          <div class="swatch black"></div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>&lt;img&gt; photos (should stay true-color)</h2>
+        <p class="meta">Color bars: red stays red. Portrait skin stays warm. Lime stays green.</p>
+        <div class="grid">
+          <figure class="card">
+            <span class="badge">img png</span>
+            <img class="media" src="assets/color-bars.png" alt="Red yellow green cyan blue purple orange bars" width="480" height="200" />
+          </figure>
+          <figure class="card">
+            <span class="badge">img png</span>
+            <img class="media" src="assets/portrait.png" alt="Simple portrait with warm skin tones" width="280" height="360" />
+          </figure>
+          <figure class="card">
+            <span class="badge">picture</span>
+            <picture>
+              <source srcset="assets/product.png" type="image/png" />
+              <img class="media" src="assets/product.png" alt="Lime on a wood table" width="400" height="300" />
+            </picture>
+          </figure>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>background-image (should stay true-color)</h2>
+        <p class="meta">
+          Darkside marks photo backgrounds with <code>data-darkside-bg</code>. Empty or
+          lightly labeled surfaces un-invert. Tiny icons and text-heavy blocks do not.
+        </p>
+        <div class="grid">
+          <div class="card">
+            <span class="badge">CSS class</span>
+            <h3>Stylesheet url()</h3>
+            <div class="hero-bg" role="img" aria-label="Ocean hero photo"></div>
+          </div>
+          <div class="card">
+            <span class="badge">inline style</span>
+            <h3>style="background-image"</h3>
+            <div
+              class="inline-bg"
+              style="background-image: url('assets/sunset.png')"
+              role="img"
+              aria-label="Sunset background"
+            ></div>
+          </div>
+          <div class="card">
+            <span class="badge">::before</span>
+            <h3>Pseudo-element</h3>
+            <div class="pseudo-bg"><span>pattern</span></div>
+          </div>
+          <div class="card">
+            <span class="badge">script</span>
+            <h3>Added after load</h3>
+            <div id="js-bg" class="js-bg"></div>
+            <p class="meta">Wait a beat after load — the lime photo is attached by script.</p>
+          </div>
+        </div>
+
+        <div class="grid" style="margin-top: 16px">
+          <div class="card">
+            <span class="badge warn">should invert with page</span>
+            <h3>Tiny background (24×24)</h3>
+            <p class="meta">Smaller than 40px, so it is treated as an icon, not a photo.</p>
+            <div class="tiny-row">
+              <div class="tiny-bg" role="img" aria-label="Gold dot icon"></div>
+              <span>Gold disc. After invert it should look blue-ish, like other icons.</span>
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge warn">should invert with page</span>
+            <h3>Text-heavy background</h3>
+            <p class="meta">More than 24 characters of text, so the photo is not un-inverted.</p>
+            <div class="text-bg">
+              This caption is long enough that Darkside leaves the background inverted
+              with the rest of the article instead of treating it as a photo.
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>&lt;svg&gt; (icons follow the page; rasters do not)</h2>
+        <div class="grid">
+          <div class="card">
+            <span class="badge warn">should invert with page</span>
+            <h3>Inline SVG icons</h3>
+            <p class="meta">Icons should track the inverted chrome, not stay original gold/red.</p>
+            <div class="icon-row">
+              <svg viewBox="0 0 48 48" width="48" height="48" aria-label="Moon icon">
+                <circle cx="24" cy="24" r="22" fill="#1c1710"></circle>
+                <path fill="#f5c75d" d="M30.5 10.2A14 14 0 1 0 37.8 28 12 12 0 0 1 30.5 10.2Z"></path>
+              </svg>
+              <svg viewBox="0 0 48 48" width="48" height="48" aria-label="Sun icon">
+                <circle cx="24" cy="24" r="10" fill="#e11d48"></circle>
+                <g stroke="#e11d48" stroke-width="3" stroke-linecap="round">
+                  <path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.8 9.8l4.2 4.2M34 34l4.2 4.2M9.8 38.2l4.2-4.2M34 14l4.2-4.2"></path>
+                </g>
+              </svg>
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge warn">should invert with page</span>
+            <h3>img src="*.svg"</h3>
+            <p class="meta">SVG files loaded as images are not un-inverted.</p>
+            <div class="icon-row">
+              <img src="assets/icon-moon.svg" alt="Moon SVG file" width="48" height="48" />
+              <img src="assets/icon-sun.svg" alt="Sun SVG file" width="48" height="48" />
+            </div>
+          </div>
+          <div class="card">
+            <span class="badge">should stay true-color</span>
+            <h3>svg &gt; image</h3>
+            <p class="meta">An SVG wrapping a PNG is un-inverted like a photo.</p>
+            <svg class="media" viewBox="0 0 400 300" width="400" height="300" role="img" aria-label="Lime photo inside SVG">
+              <image href="assets/product.png" width="400" height="300" />
+            </svg>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <h2>canvas (should stay true-color)</h2>
+        <p class="meta">Same color bars as the PNG. Red must stay red after invert.</p>
+        <canvas id="bars" class="media" width="480" height="160"></canvas>
+      </section>
+    </main>
+
+    <script>
+      const canvas = document.getElementById("bars");
+      const ctx = canvas.getContext("2d");
+      const colors = ["#dc2626", "#eab308", "#16a34a", "#06b6d4", "#2563eb", "#a855f7", "#f97316", "#fafafa", "#18181b"];
+      const w = canvas.width / colors.length;
+      colors.forEach((color, i) => {
+        ctx.fillStyle = color;
+        ctx.fillRect(i * w, 0, w + 1, canvas.height);
+      });
+
+      const jsBg = document.getElementById("js-bg");
+      requestAnimationFrame(() => {
+        jsBg.style.backgroundImage = "url('assets/product.png')";
+        jsBg.style.backgroundSize = "cover";
+        jsBg.style.backgroundPosition = "center";
+      });
+    </script>
+  </body>
+</html>
