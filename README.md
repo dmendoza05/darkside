@@ -32,7 +32,7 @@ Restricted pages (`chrome://`, the Chrome Web Store, and other extension pages) 
 
 After you change the code, click **Reload** on the Darkside card in `chrome://extensions`, then refresh the tab you are testing.
 
-## Using it
+## Browser Extension
 
 - **Dark Mode** — invert the current page; images and video stay true-color
 - **This site** — turn Darkside off for the current hostname
@@ -47,3 +47,5 @@ A few canvas-heavy apps or unusual CSS pages may look off. Turn the site off in 
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+<a href="https://www.buymeacoffee.com/deamondoza"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=deamondoza&button_colour=ceba36&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" /></a>
