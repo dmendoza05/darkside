@@ -1,0 +1,55 @@
+name: Package Chrome extension
+
+# Push a release/* branch to:
+#   1. check/bump manifest.json version
+#   2. zip the extension
+#   3. publish a new GitHub Release (never overwrite an existing one)
+on:
+  push:
+    branches:
+      - "release/**"
+
+permissions:
+  contents: write
+
+jobs:
+  package:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Check and bump version
+        id: version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/chrome_version.py bump manifest.json
+
+      - name: Commit version bump
+        if: steps.version.outputs.bumped == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add manifest.json
+          git commit -m "Bump version to ${{ steps.version.outputs.version }} [skip ci]"
+          git push
+
+      - name: Build Chrome Web Store ZIP
+        run: bash scripts/package-extension.sh
+
+      - name: Upload ZIP
+        uses: actions/upload-artifact@v4
+        with:
+          name: chrome-web-store-zip
+          path: dist/*.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "${{ steps.version.outputs.tag }}" dist/*.zip \
+            --title "Darkside ${{ steps.version.outputs.version }}" \
+            --generate-notes \
+            --target "$(git rev-parse HEAD)"
