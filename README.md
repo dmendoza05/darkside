@@ -41,6 +41,22 @@ Restricted pages (`chrome://`, the Chrome Web Store, and other extension pages) 
 
 After you change the code, click **Reload** on the Darkside card in `chrome://extensions`, then refresh the tab you are testing.
 
+## Publishing
+
+Chrome Web Store uploads are a ZIP with `manifest.json` at the root, and only the files the extension needs to run. `"version"` in `manifest.json` must be 1–4 integers (for example `1.0.0`). Each new version has to be higher than the last.
+
+**Locally** (needs `python3` and `zip`):
+
+```bash
+bash scripts/package-extension.sh
+```
+
+That writes `dist/darkside-<version>.zip`. Load the unzipped folder as an unpacked extension and try it before you upload.
+
+**On GitHub:** push a `release/*` branch (for example `release/1.0.1`). Actions checks the version, bumps it if that number was already released, and publishes a new [GitHub Release](https://github.com/dmendoza05/darkside/releases) with the ZIP. Existing releases are left alone.
+
+Upload that ZIP in the [Chrome Web Store developer dashboard](https://chrome.google.com/webstore/devconsole).
+
 ## Browser Extension
 
 - **Dark Mode** — invert the current page; images and video stay true-color
