@@ -149,30 +149,6 @@ main {
   display: none;
 }
 
-#panel-help.is-active {
-  display: flex;
-  flex-direction: column;
-  min-height: calc(100vh - 104px);
-}
-
-.cursor-credit {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin: auto 0 0;
-  padding-top: 40px;
-  color: var(--text-muted);
-  font-size: 12px;
-  text-align: center;
-}
-
-.cursor-logo {
-  width: 40px;
-  height: 40px;
-  display: block;
-}
-
 .header {
   display: flex;
   flex-direction: column;
@@ -682,19 +658,16 @@ a.link-row:hover {
   font-size: 13px;
 }
 
-.link-row.is-wip {
-  opacity: 0.72;
+.bmc-button {
+  display: inline-block;
+  margin-top: 12px;
+  line-height: 0;
 }
 
-.wip {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  color: #111;
-  background: var(--gold-muted);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
+.bmc-button img {
+  display: block;
+  height: 48px;
+  width: auto;
 }
 
 .card .hint strong {

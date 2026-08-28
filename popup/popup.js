@@ -424,6 +424,11 @@ document.getElementById("open-options").addEventListener("click", () => {
   chrome.runtime.openOptionsPage();
 });
 
+document.getElementById("report-issue")?.addEventListener("click", (event) => {
+  event.preventDefault();
+  chrome.tabs.create({ url: "https://github.com/dmendoza05/darkside/issues/new" });
+});
+
 chrome.storage.onChanged.addListener((changes, area) => {
   if (area !== "local" || saving || restricted) return;
   stored = darksideNormalize(darksideMergeChanges(stored, changes));

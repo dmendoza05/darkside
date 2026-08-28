@@ -10,9 +10,18 @@ Popup — dark mode, this-site toggle, presets, and sliders:
 
 <img src="docs/popup.png" alt="Darkside popup" width="360" />
 
-Settings — global defaults, auto night, and per-site settings:
+Settings — global defaults, site preferences, custom presets, and help:
 
-<img src="docs/settings.png" alt="Darkside settings" width="720" />
+<table>
+  <tr>
+    <td align="center"><img src="docs/settings.png" alt="Settings" width="400" /><br/>Settings</td>
+    <td align="center"><img src="docs/site-preferences.png" alt="Site Preferences" width="400" /><br/>Site Preferences</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/custom-presets.png" alt="Custom Presets" width="400" /><br/>Custom Presets</td>
+    <td align="center"><img src="docs/help.png" alt="Help" width="400" /><br/>Help</td>
+  </tr>
+</table>
 
 ## Run locally
 
@@ -32,7 +41,7 @@ Restricted pages (`chrome://`, the Chrome Web Store, and other extension pages) 
 
 After you change the code, click **Reload** on the Darkside card in `chrome://extensions`, then refresh the tab you are testing.
 
-## Using it
+## Browser Extension
 
 - **Dark Mode** — invert the current page; images and video stay true-color
 - **This site** — turn Darkside off for the current hostname
@@ -47,3 +56,5 @@ A few canvas-heavy apps or unusual CSS pages may look off. Turn the site off in 
 ## License
 
 MIT. See [LICENSE](LICENSE).
+
+<a href="https://www.buymeacoffee.com/deamondoza"><img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=deamondoza&button_colour=ceba36&font_colour=000000&font_family=Cookie&outline_colour=000000&coffee_colour=FFDD00" /></a>
