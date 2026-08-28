@@ -658,21 +658,6 @@ a.link-row:hover {
   font-size: 13px;
 }
 
-.link-row.is-wip {
-  opacity: 0.72;
-}
-
-.wip {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  color: #111;
-  background: var(--gold-muted);
-  border-radius: 999px;
-  font-size: 11px;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-}
-
 .bmc-button {
   display: inline-block;
   margin-top: 12px;
