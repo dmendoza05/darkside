@@ -10,9 +10,18 @@ Popup — dark mode, this-site toggle, presets, and sliders:
 
 <img src="docs/popup.png" alt="Darkside popup" width="360" />
 
-Settings — global defaults, auto night, and per-site settings:
+Settings — global defaults, site preferences, custom presets, and help:
 
-<img src="docs/settings.png" alt="Darkside settings" width="720" />
+<table>
+  <tr>
+    <td align="center"><img src="docs/settings.png" alt="Settings" width="400" /><br/>Settings</td>
+    <td align="center"><img src="docs/site-preferences.png" alt="Site Preferences" width="400" /><br/>Site Preferences</td>
+  </tr>
+  <tr>
+    <td align="center"><img src="docs/custom-presets.png" alt="Custom Presets" width="400" /><br/>Custom Presets</td>
+    <td align="center"><img src="docs/help.png" alt="Help" width="400" /><br/>Help</td>
+  </tr>
+</table>
 
 ## Run locally
 
